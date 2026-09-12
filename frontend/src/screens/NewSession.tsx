@@ -1,0 +1,13 @@
+import {useState} from "react";
+import {Link} from "react-router-dom";
+import {Plus} from "lucide-react";
+import {useApp} from "../context";
+import {api,errorText} from "../api";
+import {Button,Modal,ErrorNotice} from "../components/ui";
+import {DAYS,TIME_SLOTS,time} from "../types";
+
+export default function NewSession({day}:{day:number}){
+ const {workspace:w,can,refresh,notify}=useApp();const [open,setOpen]=useState(false),[module,setModule]=useState(""),[room,setRoom]=useState(""),[start,setStart]=useState(9),[duration,setDuration]=useState(2),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ if(!w||!can("Registrar"))return null;
+ return <><Button onClick={()=>setOpen(true)}><Plus size={14}/>Add session</Button>{open&&<Modal title={`Add session · ${DAYS[day]}`} onClose={()=>setOpen(false)}>{!w.modules.length?<div className="modal-body"><h3>Set up your teaching assignments</h3><p>Add faculty and cohorts, then assign a module to its faculty member and cohort. You can then schedule it in one of the college’s rooms.</p><div className="actions spaced"><Link className="btn" to="/faculty">Add faculty</Link><Link className="btn" to="/cohorts">Add cohorts</Link><Link className="btn primary" to="/modules">Assign modules</Link></div></div>:<form className="modal-body" onSubmit={async e=>{e.preventDefault();setBusy(true);setError("");try{await api.post('/timetable',{module_id:Number(module),room_id:Number(room),day,start,duration,revision:w.revision});await refresh();setOpen(false);notify("Session created and constraints checked.");}catch(err){setError(errorText(err));}finally{setBusy(false);}}}><div className="form-grid"><label>Assigned module<select required value={module} onChange={e=>setModule(e.target.value)}><option value="">Select module…</option>{w.modules.map(m=><option key={m.id} value={m.id}>{m.code} · {m.name}</option>)}</select></label><label>Room<select required value={room} onChange={e=>setRoom(e.target.value)}><option value="">Select room…</option>{w.rooms.filter(r=>r.active).map(r=><option key={r.id} value={r.id}>{r.name} · {r.capacity} seats</option>)}</select></label><label>Start time<select value={start} onChange={e=>setStart(Number(e.target.value))}>{TIME_SLOTS.map(h=><option key={h} value={h}>{time(h)}</option>)}</select></label><label>Duration (hours)<input type="number" min={.5} step={.5} max={17-start} value={duration} onChange={e=>setDuration(Number(e.target.value))}/></label></div>{error&&<ErrorNotice message={error}/>}<div className="actions spaced"><Button type="button" onClick={()=>setOpen(false)}>Cancel</Button><Button variant="primary" disabled={busy||!module||!room}>{busy?"Checking…":"Create session"}</Button></div></form>}</Modal>}</>;
+}
