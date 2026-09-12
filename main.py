@@ -35,6 +35,12 @@ def home():
         "message": "RTE Clash Detection API is running"
     }
 
+@app.get("/timetable")
+def get_timetable():
+
+    entries = get_timetable_for_clash_detection()
+
+    return entries
 
 @app.get("/check-clashes")
 def check_clashes():

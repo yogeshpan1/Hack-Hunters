@@ -294,11 +294,48 @@ def get_timetable_for_clash_detection():
 
         JOIN time_slots t
             ON ts.time_slot_id = t.time_slot_id
+
+        ORDER BY
+            FIELD(
+                t.day_of_week,
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday'
+            ),
+            t.start_time
     """
 
     cursor.execute(query)
 
     entries = cursor.fetchall()
+
+    # Convert MySQL time values into normal strings
+    for entry in entries:
+
+        start_time = entry["start_time"]
+        end_time = entry["end_time"]
+
+        if hasattr(start_time, "total_seconds"):
+            total_seconds = int(start_time.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+
+            entry["start_time"] = f"{hours:02d}:{minutes:02d}"
+
+        else:
+            entry["start_time"] = str(start_time)[:5]
+
+        if hasattr(end_time, "total_seconds"):
+            total_seconds = int(end_time.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+
+            entry["end_time"] = f"{hours:02d}:{minutes:02d}"
+
+        else:
+            entry["end_time"] = str(end_time)[:5]
 
     cursor.close()
     connection.close()
