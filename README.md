@@ -34,6 +34,10 @@ The database initializes and seeds on first startup. Without configuration, a lo
 
 ## Demo accounts
 
+The local app uses **SQLite**, through SQLAlchemy. It does not require a separate database account or database server. `backend/app/main.py` creates the tables on startup and calls `backend/app/seed.py`. When the users table is empty, that script inserts the fictional demo users and academic records. It skips seeding on subsequent startups, preserving your changes.
+
+These are application accounts stored in the local database, not accounts created with Islington, Google, or another external service. To create another application user, sign in as `admin@nexus.demo`, open **Users & Roles**, and choose **Add user**. The API hashes the password and records the creation in the audit log. Passwords use salted PBKDF2-SHA256 with 200,000 iterations; the plaintext password is not stored in the users table.
+
 Every account below uses the development-only password **`NexusDemo!2026`**.
 
 | Email | Role | Primary access |
@@ -133,6 +137,8 @@ docker compose up --build
 Compose runs PostgreSQL 16, FastAPI, and the built frontend through Nginx. Open http://127.0.0.1:5173. Database files persist in the `nexus_postgres` volume. For an external PostgreSQL server, set `DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/nexus` locally. Schema creation is automatic for the prototype; versioned production migrations are not included.
 
 ## Verification
+
+The interface follows the supplied reference screenshots: separate dashboard score cards, a daily timetable canvas with a session inspector, a right-side assistant drawer, resource summaries, workload bars, cohort flow, an exam timeline, solver review, analytics, rule cards and a change timeline. Metrics reflect the actual demo database rather than the screenshot's illustrative numbers. The opening sequence lasts seven seconds, offers **Skip introduction**, and shortens automatically for reduced-motion preferences.
 
 ```powershell
 .venv\Scripts\python.exe -m pytest backend/tests -q
