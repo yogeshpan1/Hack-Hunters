@@ -185,9 +185,6 @@ def validate_payload(entity,payload,db):
         else:
             if values["pc_count"]>values["capacity"]: raise HTTPException(422,"PC count cannot exceed the sitting capacity.")
             values["equipment"]=sorted(set(values["equipment"])|{"AC","Projector"})
-    if entity=="users":
-        if values["role"]=="Faculty" and not values.get("faculty_id"): raise HTTPException(422,"Faculty users require a faculty assignment.")
-        if values["role"]=="Student" and not values.get("cohort_id"): raise HTTPException(422,"Student users require a cohort assignment.")
     return values
 
 @app.get("/api/data/{entity}")
@@ -195,7 +192,7 @@ def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
     model,_=entity_info(entity)
     if entity=="sessions": return timetable(db,user)
     if entity=="users": require(user,[])
-    if entity=="students": require(user,["Registrar","Admissions","Programme Admin"])
+    if entity=="students": require(user,["Registrar"])
     if user.role in ["Student","Faculty"] and entity in ["faculty","modules","cohorts"]: return workspace(db,user)[entity]
     return [serialize(x) for x in db.find(model)]
 

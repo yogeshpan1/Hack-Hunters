@@ -78,8 +78,6 @@ class UserInput(EmailRecord):
     role: str
     active: bool=True
     password: str | None=Field(default=None,min_length=10)
-    faculty_id: int | None=None
-    cohort_id: int | None=None
     @field_validator("role")
     @classmethod
     def role_known(cls,value):

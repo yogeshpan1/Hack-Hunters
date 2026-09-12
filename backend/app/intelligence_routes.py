@@ -15,7 +15,7 @@ def search(q:str="",db=Depends(get_db),user=Depends(current_user)):
         for row in w[key]:
             if q.lower() in str(row).lower(): results.append({"entity":key,"id":row["id"],"label":row.get("code",row.get("name")),"detail":row.get("name","")})
     if user.role not in ["Faculty","Student"]:
-        sources=[("students",m.Student)] if user.role in ["Super Admin","Registrar","Admissions","Programme Admin"] else []
+        sources=[("students",m.Student)] if user.role in ["Super Admin","Registrar"] else []
         if user.role in ["Super Admin","Registrar"]: sources += [("audit",m.AuditLog),("exams",m.ExamSession)]
         for key,model in sources:
             for row in db.find(model,descending=True,limit=500):
