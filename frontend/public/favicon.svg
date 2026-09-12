@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs><clipPath id="crest"><circle cx="32" cy="32" r="30"/></clipPath></defs>
+  <circle cx="32" cy="32" r="31" fill="#fff"/>
+  <image href="/islington.png" x="0" y="0" width="64" height="64" clip-path="url(#crest)" preserveAspectRatio="xMidYMid slice"/>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#002d6d" stroke-width="2"/>
+</svg>
