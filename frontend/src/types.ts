@@ -1,0 +1,16 @@
+export type RecordData = Record<string, unknown> & { id: number };
+export type User = {id:number;name:string;email:string;role:string;active:boolean};
+export type Room = {id:number;name:string;building:string;capacity:number;kind:string;equipment:string[];unavailable:string[];active:boolean};
+export type Faculty = {id:number;name:string;code:string;department:string;max_hours:number;unavailable:string[]};
+export type Programme = {id:number;name:string;department:string};
+export type Cohort = {id:number;name:string;programme_id:number;size:number;level:number};
+export type Module = {id:number;code:string;name:string;programme_id:number;faculty_id:number;cohort_id:number;credits:number;room_type:string;resources:string[]};
+export type Session = {id:number;module_id:number;room_id:number;day:number;start:number;duration:number;locked:boolean;state:string;code:string;module:string;faculty_id:number;faculty:string;cohort_id:number;cohort:string;size:number;room:string;capacity:number;room_type:string;resources:string[]};
+export type Conflict = {id:string;kind:string;session_ids:number[];code:string;detail:string;severity:string};
+export type Metrics = {health:number;conflicts:number;conflict_free:number;utilization:number;faculty_balance:number;overloads:number;sessions:number;teaching_hours:number};
+export type Rule = {id:number;name:string;kind:string;weight:number};
+export type Workspace = {rooms:Room[];faculty:Faculty[];programmes:Programme[];cohorts:Cohort[];modules:Module[];sessions:Session[];conflicts:Conflict[];metrics:Metrics;rules:Rule[];revision:number;demo:boolean};
+export type Change = {id:number;code:string;before:{room:string;day:number;start:number};after:{room:string;day:number;start:number};reason:string};
+export type Run = {id:number;status:string;kind:string;revision:number;before:Metrics;after:Metrics;changes:Change[];explanation:string;created_at:string;scenario:{room_id?:number;day?:number}};
+export const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+export const time=(h:number)=>`${String(h).padStart(2,"0")}:00`;
