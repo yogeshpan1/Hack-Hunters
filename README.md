@@ -2,6 +2,8 @@
 
 Academic Operations Intelligence for Islington College · ING ecosystem
 
+Primary repository: [yogeshpan1/Hack-Hunters](https://github.com/yogeshpan1/Hack-Hunters)
+
 NEXUS helps academic teams identify timetable conflicts, calculate valid alternatives, review the impact, approve a change, and publish it with an audit trail and communication drafts. The hackathon demonstration focuses on this complete operational loop.
 
 ## Start locally
