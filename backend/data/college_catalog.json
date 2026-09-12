@@ -1,0 +1,2904 @@
+{
+  "programmes": [
+    {
+      "id": 1,
+      "name": "BSc (Hons) Computing",
+      "department": "Computing",
+      "award": "BSc (Hons) Computing",
+      "level": "Undergraduate",
+      "specialization": "",
+      "curriculum": [
+        {
+          "code": "CC4057",
+          "name": "Introduction to Information Systems",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CC4051",
+          "name": "Fundamentals of Computing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MA4001",
+          "name": "Logic and Problem Solving",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CT4005",
+          "name": "Computing Hardware and Software Architecture",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CS4001",
+          "name": "Programming",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CS5053",
+          "name": "Cloud Computing and Internet of Things",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CC5051",
+          "name": "Databases",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CT5052",
+          "name": "Network Operating Systems",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CS5071",
+          "name": "Professional and Ethical Issues",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CS5054",
+          "name": "Advanced Programming and Technologies",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CS5002",
+          "name": "Software Engineering",
+          "year": 2,
+          "credits": 30
+        },
+        {
+          "code": "CC5067",
+          "name": "Smart Data Discovery",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU6051",
+          "name": "Artificial Intelligence",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CC6012",
+          "name": "Data and Web Development",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CS6004",
+          "name": "Application Development",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CS6W50",
+          "name": "Career Development Learning",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CS6P05",
+          "name": "Project",
+          "year": 3,
+          "credits": 30
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 99"
+    },
+    {
+      "id": 2,
+      "name": "BSc (Hons) Computing with Artificial Intelligence",
+      "department": "Computing",
+      "award": "BSc (Hons) Computing with Artificial Intelligence",
+      "level": "Undergraduate",
+      "specialization": "",
+      "curriculum": [
+        {
+          "code": "MA4010",
+          "name": "Calculus and Linear Algebra",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CS4051",
+          "name": "Fundamentals of Robotics and IoT",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CS4001",
+          "name": "Programming",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CC4057",
+          "name": "Introduction to Information Systems",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CC4051",
+          "name": "Fundamentals of Computing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CS5003",
+          "name": "Data Structure and Specialist Programming",
+          "year": 2,
+          "credits": 30
+        },
+        {
+          "code": "MA5053",
+          "name": "Probability and Statistics",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MA5054",
+          "name": "Further Calculus",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CC5061",
+          "name": "Applied Data Science",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CS5002",
+          "name": "Software Engineering",
+          "year": 2,
+          "credits": 30
+        },
+        {
+          "code": "CC5051",
+          "name": "Databases",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CT6008",
+          "name": "Big Data and Data Mining",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CT6057",
+          "name": "Computer Vision",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CC6057",
+          "name": "Applied Machine Learning",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CU6051",
+          "name": "Artificial Intelligence",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CS6P05",
+          "name": "Project",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CS6W50",
+          "name": "Career Development Learning",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 101"
+    },
+    {
+      "id": 3,
+      "name": "BSc (Hons) Computer Networking and IT Security",
+      "department": "Computing",
+      "award": "BSc (Hons) Computer Networking and IT Security",
+      "level": "Undergraduate",
+      "specialization": "",
+      "curriculum": [
+        {
+          "code": "CC4005",
+          "name": "Introduction to Networks",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CC4004",
+          "name": "Cybersecurity Fundamentals",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CC4058",
+          "name": "Introduction to Information Systems",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CC4059",
+          "name": "Fundamentals of Computing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CS4001",
+          "name": "Programming",
+          "year": 1,
+          "credits": 30
+        },
+        {
+          "code": "CC5052",
+          "name": "Risk, Crisis and Security Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CT5009",
+          "name": "Switching Routing and Wireless Essentials",
+          "year": 2,
+          "credits": 30
+        },
+        {
+          "code": "CC5068",
+          "name": "Cloud Computing and the Internet of Things",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CT5054",
+          "name": "Operating Systems",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CC5009",
+          "name": "Cybersecurity in Computing",
+          "year": 2,
+          "credits": 30
+        },
+        {
+          "code": "CS5071",
+          "name": "Professional and Ethical Issues",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CT6009",
+          "name": "Enterprise Networking Security and Automation",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CC6051",
+          "name": "Ethical Hacking",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CC6011",
+          "name": "Digital Investigation and E-Discovery",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "CS6W50",
+          "name": "Career Development Learning",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CS6P05",
+          "name": "Project",
+          "year": 3,
+          "credits": 30
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 103"
+    },
+    {
+      "id": 4,
+      "name": "BSc (Hons) Multimedia Technologies",
+      "department": "Computing",
+      "award": "BSc (Hons) Multimedia Technologies",
+      "level": "Undergraduate",
+      "specialization": "",
+      "curriculum": [
+        {
+          "code": "CU4051",
+          "name": "3D Modelling and Texturing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CU4052",
+          "name": "3D Sculpting and Animation",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CU4060",
+          "name": "Introduction to Drawing and Animation",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CU4050",
+          "name": "2D Computer Animation",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CU4062",
+          "name": "Digital Imaging",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MD4056",
+          "name": "Post-Production",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CC4057",
+          "name": "Information System",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MD4053",
+          "name": "Sound Design for Linear Media",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "CU5059",
+          "name": "Anatomy and Character VFX",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU5050",
+          "name": "3D Texturing and VFX",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU5055",
+          "name": "Advanced 3D Animation",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU5056",
+          "name": "Advanced 3D Modelling",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU5062",
+          "name": "Motion Graphics Design",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "CU5065",
+          "name": "VFX",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "SM5088",
+          "name": "Digital Project Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "SM5094",
+          "name": "Web Design",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MD6051",
+          "name": "Advanced Studio Engineering",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MD6053",
+          "name": "Audio Mastering and Remastering",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CU6068",
+          "name": "Portfolio Research, Design and Social Media",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CU6012",
+          "name": "Portfolio Creation",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CS6P05",
+          "name": "Project",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "SM6082",
+          "name": "Media Industry Careers",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "CS6W50",
+          "name": "Career Development Learning",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 105"
+    },
+    {
+      "id": 5,
+      "name": "BA (Hons) Business Administration — International Business",
+      "department": "Business",
+      "award": "BA (Hons) Business Administration",
+      "level": "Undergraduate",
+      "specialization": "International Business",
+      "curriculum": [
+        {
+          "code": "AC4053",
+          "name": "Managing Accounting Fundamentals",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4079",
+          "name": "People Management and Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MC4061",
+          "name": "Principles of Marketing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4083",
+          "name": "Data Analysis for Business Decision Making",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4052",
+          "name": "Financial Accounting",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4055",
+          "name": "Understanding the Business and Economic Environment",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4084",
+          "name": "Learning Through Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "HR4056",
+          "name": "Introduction to HRM in Contemporary Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN5067",
+          "name": "Leadership in Practice",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MC5080",
+          "name": "Marketing communications",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "LT5078",
+          "name": "Sustainability, Business and Responsibility",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5055",
+          "name": "Project Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "BL5055",
+          "name": "Company and Business Law",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5075",
+          "name": "Operations & Supply Chain Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5063",
+          "name": "Principles of Finance",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "HR5053",
+          "name": "Organisation Design and Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN6P07",
+          "name": "Dissertation",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "FE6006",
+          "name": "International Business Environment and World Markets",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "FE6063",
+          "name": "Economics of Multinational Business",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MN6090",
+          "name": "International Marketing and Sales in the Digital Era",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "EC6065",
+          "name": "International Trade and Finance",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MN6093",
+          "name": "International Business Strategy",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 107"
+    },
+    {
+      "id": 6,
+      "name": "BA (Hons) Business Administration — Events and Tourism Management",
+      "department": "Business",
+      "award": "BA (Hons) Business Administration",
+      "level": "Undergraduate",
+      "specialization": "Events and Tourism Management",
+      "curriculum": [
+        {
+          "code": "AC4053",
+          "name": "Managing Accounting Fundamentals",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4079",
+          "name": "People Management and Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MC4061",
+          "name": "Principles of Marketing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4083",
+          "name": "Data Analysis for Business Decision Making",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4052",
+          "name": "Financial Accounting",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4055",
+          "name": "Understanding the Business and Economic Environment",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4084",
+          "name": "Learning Through Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "HR4056",
+          "name": "Introduction to HRM in Contemporary Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN5067",
+          "name": "Leadership in Practice",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MC5080",
+          "name": "Marketing communications",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "LT5078",
+          "name": "Sustainability, Business and Responsibility",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5055",
+          "name": "Project Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "BL5055",
+          "name": "Company and Business Law",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5075",
+          "name": "Operations & Supply Chain Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5063",
+          "name": "Principles of Finance",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "HR5053",
+          "name": "Organisation Design and Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MC6P02",
+          "name": "Marketing and Creative Enterprise Dissertation",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "LT6033",
+          "name": "Managing Culture, Tourism and Regeneration",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "LT6034",
+          "name": "Destination Management and Marketing",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "LT6096",
+          "name": "Creative Industries and Events Policy",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "LT6097",
+          "name": "Managing Events- Planning and Practice",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 109"
+    },
+    {
+      "id": 7,
+      "name": "BA (Hons) Business Administration — Advertising and Marketing",
+      "department": "Business",
+      "award": "BA (Hons) Business Administration",
+      "level": "Undergraduate",
+      "specialization": "Advertising and Marketing",
+      "curriculum": [
+        {
+          "code": "AC4053",
+          "name": "Managing Accounting Fundamentals",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4079",
+          "name": "People Management and Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MC4061",
+          "name": "Principles of Marketing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4083",
+          "name": "Data Analysis for Business Decision Making",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4052",
+          "name": "Financial Accounting",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4055",
+          "name": "Understanding the Business and Economic Environment",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4084",
+          "name": "Learning Through Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "HR4056",
+          "name": "Introduction to HRM in Contemporary Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN5067",
+          "name": "Leadership in Practice",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MC5080",
+          "name": "Marketing communications",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "LT5078",
+          "name": "Sustainability, Business and Responsibility",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5055",
+          "name": "Project Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "BL5055",
+          "name": "Company and Business Law",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5075",
+          "name": "Operations & Supply Chain Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5063",
+          "name": "Principles of Finance",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "HR5053",
+          "name": "Organisation Design and Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN6P07",
+          "name": "Dissertation",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "MC6015",
+          "name": "Advertisements-Theory, Process and Practice",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "MN6090",
+          "name": "International Marketing and Sales in the Digital Era",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MC6091",
+          "name": "Brand Management",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MC6100",
+          "name": "Creative Advertising and Copywriting",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MC6102",
+          "name": "Managing Consumer PR and Media Relations",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 111"
+    },
+    {
+      "id": 8,
+      "name": "BA (Hons) Business Administration — Digital Business Management",
+      "department": "Business",
+      "award": "BA (Hons) Business Administration",
+      "level": "Undergraduate",
+      "specialization": "Digital Business Management",
+      "curriculum": [
+        {
+          "code": "AC4053",
+          "name": "Managing Accounting Fundamentals",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4079",
+          "name": "People Management and Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MC4061",
+          "name": "Principles of Marketing",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4083",
+          "name": "Data Analysis for Business Decision Making",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4052",
+          "name": "Financial Accounting",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4055",
+          "name": "Understanding the Business and Economic Environment",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4084",
+          "name": "Learning Through Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "HR4056",
+          "name": "Introduction to HRM in Contemporary Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN5067",
+          "name": "Leadership in Practice",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MC5080",
+          "name": "Marketing communications",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "LT5078",
+          "name": "Sustainability, Business and Responsibility",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5055",
+          "name": "Project Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "BL5055",
+          "name": "Company and Business Law",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5075",
+          "name": "Operations & Supply Chain Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5063",
+          "name": "Principles of Finance",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "HR5053",
+          "name": "Organisation Design and Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN6P07",
+          "name": "Dissertation",
+          "year": 3,
+          "credits": 30
+        },
+        {
+          "code": "MN6091",
+          "name": "Emerging Technology in Digital Business Management",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MC6103",
+          "name": "Digital and Social Media Marketing",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MN6090",
+          "name": "International Marketing and Sales in the Digital Era",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "FE6062",
+          "name": "Applied Information Technology for Profession Practice",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MC6104",
+          "name": "Digital Marketing Trends and Practice",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "MN6078",
+          "name": "Artificial Intelligence and Big Data in Business",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 113"
+    },
+    {
+      "id": 9,
+      "name": "BA (Hons) Accounting and Finance",
+      "department": "Business",
+      "award": "BA (Hons) Accounting and Finance",
+      "level": "Undergraduate",
+      "specialization": "",
+      "curriculum": [
+        {
+          "code": "AC4052",
+          "name": "Financial Accounting",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4053",
+          "name": "Management Accounting Fundamentals",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4054",
+          "name": "Management Information Systems",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4055",
+          "name": "Data Science, Research and Analysis",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC4056",
+          "name": "Business Law and Ethics",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4055",
+          "name": "Understanding the Business and Economic Environment",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "FE4051",
+          "name": "Introduction to Financial Markets and Institutions",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "MN4084",
+          "name": "Learning Through Organisations",
+          "year": 1,
+          "credits": 15
+        },
+        {
+          "code": "AC5062",
+          "name": "Financial Reporting",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5063",
+          "name": "Principles of Finance",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5064",
+          "name": "Taxation-Income Tax",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5065",
+          "name": "Taxation-Corporate Tax",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC5072",
+          "name": "Performance Management",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "BL5055",
+          "name": "Company and Business Law",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "FE5056",
+          "name": "Problem Solving: Methods and Analysis",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "MN5W50",
+          "name": "Creating a Winning Business",
+          "year": 2,
+          "credits": 15
+        },
+        {
+          "code": "AC6064",
+          "name": "Advanced Financial Reporting",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "AC6065",
+          "name": "Financial Management",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "AC6068",
+          "name": "Audit and Assurance Services",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "AC6070",
+          "name": "Advanced Financial Accounting",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "FE6055",
+          "name": "Financial and Economic Modelling",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "FE6060",
+          "name": "Financial Engineering",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "FE6P04A",
+          "name": "Dissertation",
+          "year": 3,
+          "credits": 15
+        },
+        {
+          "code": "FE6P04S",
+          "name": "Dissertation",
+          "year": 3,
+          "credits": 15
+        }
+      ],
+      "source": "ICK UG Brochure 2026.pdf · PDF page 115"
+    },
+    {
+      "id": 10,
+      "name": "MBA — International Business Management",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "International Business Management",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Business Strategy and Simulation",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Economics of International Trade",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Data Analysis for Global Managers",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 39"
+    },
+    {
+      "id": 11,
+      "name": "MBA — Project Management",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "Project Management",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Operations and Technology Management",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Strategic Programme, Portfolio and Project Management",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International HRM: Working Across Cultures",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 40"
+    },
+    {
+      "id": 12,
+      "name": "MBA — Advertising and Marketing",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "Advertising and Marketing",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Understanding Consumer Behaviour",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Digital Marketing & Social Media",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Advertisement Management",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 43"
+    },
+    {
+      "id": 13,
+      "name": "MBA — Digital Media",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "Digital Media",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Principles of Digital Media",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Digital Media Strategy and Consultancy",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Digital Storytelling",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 44"
+    },
+    {
+      "id": 14,
+      "name": "MBA — Events and Tourism",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "Events and Tourism",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Marketing Management for Events, Leisure and Tourism",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Fundraising and PR for Events, Leisure and Tourism",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Project and Quality Management for Events, Leisure and Tourism",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 10,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 10,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 20,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 47"
+    },
+    {
+      "id": 15,
+      "name": "MBA — Cyber Security",
+      "department": "Business",
+      "award": "MBA",
+      "level": "Postgraduate",
+      "specialization": "Cyber Security",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Breakthrough Leadership Skills",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Financial Decision Making",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "International Project Management Practice",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Management Learning & Research",
+          "semester": 2,
+          "credits": 10,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Information Security",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Cybercrime and Cybersecurity",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Professional Development and Work Placement",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Dissertation",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        },
+        {
+          "code": null,
+          "name": "Building Business Insights",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": "Choose one final-semester route"
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 48"
+    },
+    {
+      "id": 16,
+      "name": "MSc IT and Applied Security — Data Analytics",
+      "department": "Computing",
+      "award": "MSc IT and Applied Security",
+      "level": "Postgraduate",
+      "specialization": "Data Analytics",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Project Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Programming for Data Analytics",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Data Warehousing and Big Data",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Data Analysis and Visualisation",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Data Mining and Machine Learning",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "MSc Project",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": null
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 55"
+    },
+    {
+      "id": 17,
+      "name": "MSc IT and Applied Security — Artificial Intelligence",
+      "department": "Computing",
+      "award": "MSc IT and Applied Security",
+      "level": "Postgraduate",
+      "specialization": "Artificial Intelligence",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Project Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Artificial Intelligence",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Machine Learning",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Computer Vision",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Neural Networks and Deep Learning",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "MSc Project",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": null
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 56"
+    },
+    {
+      "id": 18,
+      "name": "MSc IT and Applied Security — Software Engineering",
+      "department": "Computing",
+      "award": "MSc IT and Applied Security",
+      "level": "Postgraduate",
+      "specialization": "Software Engineering",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Project Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Architecture and Design Pattern",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Development, Quality Assurance and Operations",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Enterprise Programming",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Engineering Management",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "MSc Project",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": null
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 59"
+    },
+    {
+      "id": 19,
+      "name": "MSc IT and Applied Security — DevOps Engineering",
+      "department": "Computing",
+      "award": "MSc IT and Applied Security",
+      "level": "Postgraduate",
+      "specialization": "DevOps Engineering",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Project Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Development, Quality Assurance and Operations",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Network Infrastructure Engineering",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Enterprise Security and Operations",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Threat Intelligence Life Cycle",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "MSc Project",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": null
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 60"
+    },
+    {
+      "id": 20,
+      "name": "MSc IT and Applied Security — Cyber Threat Intelligence",
+      "department": "Computing",
+      "award": "MSc IT and Applied Security",
+      "level": "Postgraduate",
+      "specialization": "Cyber Threat Intelligence",
+      "curriculum": [
+        {
+          "code": null,
+          "name": "Cybersecurity Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Software Project Management",
+          "semester": 1,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Threat Intelligence Life Cycle",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Cyber Risk Management",
+          "semester": 2,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": "CC7008",
+          "name": "Advanced Ethical Hacking and Security Compliance",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "Cybersecurity and Artificial Intelligence",
+          "semester": 3,
+          "credits": 20,
+          "optional_group": null
+        },
+        {
+          "code": null,
+          "name": "MSc Project",
+          "semester": 4,
+          "credits": 60,
+          "optional_group": null
+        }
+      ],
+      "source": "ICK PG Brochure.pdf · PDF page 63"
+    }
+  ],
+  "rooms": [
+    {
+      "id": 1,
+      "name": "KUMARI-HALL-1",
+      "display_name": "Kumari Hall 1",
+      "building": "Kumari",
+      "capacity": 270,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "KUMARI-HALL-2",
+      "display_name": "Kumari Hall 2",
+      "building": "Kumari",
+      "capacity": 180,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "LT-01",
+      "display_name": "Buckingham Palace",
+      "building": "London",
+      "capacity": 90,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "LT-02",
+      "display_name": "Kensington Palace",
+      "building": "London",
+      "capacity": 90,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "LT-03",
+      "display_name": "Westminster Palace",
+      "building": "London",
+      "capacity": 90,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 6,
+      "name": "LT-04",
+      "display_name": "Tridev Gurung",
+      "building": "Alumni",
+      "capacity": 100,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 7,
+      "name": "LT-05",
+      "display_name": "Amir Khadka",
+      "building": "Alumni",
+      "capacity": 100,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 8,
+      "name": "LT-06",
+      "display_name": "Chhitesh Lal Shrestha",
+      "building": "Alumni",
+      "capacity": 96,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 9,
+      "name": "LT-08",
+      "display_name": "Naresh Lamgade",
+      "building": "Alumni",
+      "capacity": 88,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 10,
+      "name": "LT-11",
+      "display_name": "Innovate Tech",
+      "building": "Impact",
+      "capacity": 60,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 11,
+      "name": "LT-12",
+      "display_name": "ING Skill Academy",
+      "building": "Impact",
+      "capacity": 72,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 12,
+      "name": "LT-13",
+      "display_name": "Vairav Tech",
+      "building": "Impact",
+      "capacity": 72,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 13,
+      "name": "SR-01",
+      "display_name": "Tower Bridge",
+      "building": "London",
+      "capacity": 57,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 14,
+      "name": "SR-02",
+      "display_name": "Trafalgar Square",
+      "building": "London",
+      "capacity": 50,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 15,
+      "name": "SR-03",
+      "display_name": "Piccadilly Circus",
+      "building": "London",
+      "capacity": 49,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 16,
+      "name": "SR-04",
+      "display_name": "Tower of London",
+      "building": "London",
+      "capacity": 46,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 17,
+      "name": "SR-05",
+      "display_name": "Rotash Shrestha",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 18,
+      "name": "SR-06",
+      "display_name": "Abhash Bikram Thapa",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 19,
+      "name": "SR-07",
+      "display_name": "Sujan Khadgi",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 20,
+      "name": "SR-08",
+      "display_name": "Sajiya Gurung",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 21,
+      "name": "SR-09",
+      "display_name": "Simran Bhattarai",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 22,
+      "name": "SR-10",
+      "display_name": "Samir Gautam",
+      "building": "Alumni",
+      "capacity": 48,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 23,
+      "name": "TR-01",
+      "display_name": "Kantipur",
+      "building": "Nepal",
+      "capacity": 39,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 24,
+      "name": "TR-02",
+      "display_name": "Patan",
+      "building": "Nepal",
+      "capacity": 40,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 25,
+      "name": "TR-03",
+      "display_name": "Pokhara",
+      "building": "Nepal",
+      "capacity": 32,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 26,
+      "name": "TR-04",
+      "display_name": "Lumbini",
+      "building": "Nepal",
+      "capacity": 36,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 27,
+      "name": "TR-05",
+      "display_name": "Machapuchare",
+      "building": "Nepal",
+      "capacity": 37,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 28,
+      "name": "TR-06",
+      "display_name": "Annapurna",
+      "building": "Nepal",
+      "capacity": 40,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 29,
+      "name": "TR-07",
+      "display_name": "Kanchanjunga",
+      "building": "Nepal",
+      "capacity": 39,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 30,
+      "name": "TR-08",
+      "display_name": "Sagarmatha",
+      "building": "Nepal",
+      "capacity": 34,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 31,
+      "name": "TR-09",
+      "display_name": "mySecondTeacher",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 32,
+      "name": "TR-10",
+      "display_name": "One More Bite",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 33,
+      "name": "TR-11",
+      "display_name": "ING Arc",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 34,
+      "name": "TR-12",
+      "display_name": "ING Tech",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 35,
+      "name": "TR-13",
+      "display_name": "inRed Labs",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Classroom",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 36,
+      "name": "TR-14",
+      "display_name": "Prashidika Tiwari",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 37,
+      "name": "TR-15",
+      "display_name": "Sarad Paudel",
+      "building": "Skill",
+      "capacity": 60,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 60,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 38,
+      "name": "TR-16",
+      "display_name": "Prashraya Thapa",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 39,
+      "name": "TR-17",
+      "display_name": "Raj Bikram Shrestha",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 40,
+      "name": "LAB-01",
+      "display_name": "Aayesha Nakarmi",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 41,
+      "name": "LAB-02",
+      "display_name": "Ams Ghimire",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 42,
+      "name": "LAB-03",
+      "display_name": "Lasata Maharjan",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 43,
+      "name": "LAB-04",
+      "display_name": "Kshitiz Shrestha",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 44,
+      "name": "LAB-05",
+      "display_name": "Sahas Shakya",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 45,
+      "name": "LAB-06",
+      "display_name": "Aashima Chalise",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 46,
+      "name": "LAB-07",
+      "display_name": "Sonik Das Mulmi",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 47,
+      "name": "LAB-08",
+      "display_name": "Ronisha Shrestha",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 48,
+      "name": "LAB-09",
+      "display_name": "Sheneeza Chaudhary",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 49,
+      "name": "LAB-10",
+      "display_name": "Jeevan Khatiwada",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 50,
+      "name": "LAB-11",
+      "display_name": "Suvan Thapa Magar",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 51,
+      "name": "LAB-12",
+      "display_name": "Sushant Hona",
+      "building": "Skill",
+      "capacity": 30,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector",
+        "Computers"
+      ],
+      "pc_count": 30,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 52,
+      "name": "LAB-13",
+      "display_name": "Lab 13",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 53,
+      "name": "LAB-14",
+      "display_name": "Lab 14",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 54,
+      "name": "LAB-15",
+      "display_name": "Lab 15",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    },
+    {
+      "id": 55,
+      "name": "LAB-16",
+      "display_name": "Lab 16",
+      "building": "Impact",
+      "capacity": 24,
+      "kind": "Lab",
+      "equipment": [
+        "AC",
+        "Projector"
+      ],
+      "pc_count": 0,
+      "source": "Class Details.csv; Skill Block PCs and all-room AC/projector confirmed by user",
+      "unavailable": [],
+      "active": true
+    }
+  ],
+  "notes": [
+    "Programme catalogue entries are published curriculum, not current teaching allocations.",
+    "PG brochure does not supply module codes; these remain null.",
+    "Impact Block LAB rooms are classified as labs by their supplied codes, but their PC counts are unconfirmed and remain 0.",
+    "MBA final-semester routes are alternatives, not simultaneous required modules.",
+    "Credit figures are transcribed as printed; programme administrators should confirm apparent brochure discrepancies before using them for credit audits."
+  ]
+}
