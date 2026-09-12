@@ -1,0 +1,143 @@
+.app {
+  min-height: 100vh;
+  background: #111827;
+  color: white;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #9ca3af;
+  margin-bottom: 30px;
+}
+
+
+/* Check button */
+
+.check-button {
+  display: block;
+  margin: 0 auto 25px auto;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.check-button:hover {
+  background: #1d4ed8;
+}
+
+.check-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* Success */
+
+.success-message {
+  padding: 20px;
+  border-radius: 10px;
+  background: #064e3b;
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+  text-align: center;
+  font-size: 18px;
+}
+
+
+/* Error */
+
+.error-message {
+  padding: 20px;
+  border-radius: 10px;
+  background: #450a0a;
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  text-align: center;
+}
+
+
+/* Clash list */
+
+.clash-list {
+  margin-top: 20px;
+}
+
+.clash-list h2 {
+  color: #f87171;
+  margin-bottom: 20px;
+}
+
+
+/* Individual clash */
+
+.clash-card {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #1f2937;
+  border: 1px solid #ef4444;
+}
+
+.clash-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+
+/* Clash type */
+
+.clash-type {
+  display: inline-block;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background: #991b1b;
+  color: #fecaca;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+
+/* Message */
+
+.message {
+  color: #d1d5db;
+  margin-bottom: 20px;
+}
+
+
+/* Class information */
+
+.class-info {
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  background: #111827;
+  border: 1px solid #374151;
+}
+
+.class-info strong {
+  color: #60a5fa;
+}
+
+.class-info p {
+  margin: 7px 0;
+  color: #d1d5db;
+}
