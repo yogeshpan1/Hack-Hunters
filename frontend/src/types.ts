@@ -21,4 +21,4 @@ export const DAY_START=6.5;
 export const DAY_END=17;
 export const TIME_SLOTS=Array.from({length:(DAY_END-DAY_START)*2},(_,i)=>DAY_START+i/2);
 export const time=(h:number)=>{const minutes=Math.round(h*60);return `${String(Math.floor(minutes/60)).padStart(2,"0")}:${String(minutes%60).padStart(2,"0")}`;};
-export const roleLabel=(role?:string)=>role==="Super Admin"?"Administrator":role||"";
+export const roleLabel=(role?:string)=>role==="Super Admin"?"Registrar":role||"";

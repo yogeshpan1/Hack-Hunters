@@ -12,7 +12,7 @@ def load_reference_demo(db):
     if os.getenv('NEXUS_LOAD_DEMO','true').lower()=='false': return False
     if db.first(m.AuditLog,{'action':'REFERENCE DEMO INITIALIZED'}): return False
     if any(db.first(model) for model in [m.Faculty,m.Module,m.Cohort,m.TimetableSession]): return False
-    admin=db.first(m.User,{'role':'Super Admin','active':True})
+    admin=db.first(m.User,{'role':{'$in':['Registrar','Super Admin']},'active':True})
     if not admin: return False
     data=json.loads(OPERATIONS_PATH.read_text(encoding='utf-8'))
     profile=next(p for p in data['profiles'] if p['id']==data['recommended_demo']['profile_id'])

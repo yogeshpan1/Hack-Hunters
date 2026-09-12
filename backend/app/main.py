@@ -165,7 +165,7 @@ def entity_info(entity):
 def validate_payload(entity,payload,db):
     _,schema=entity_info(entity)
     try: values=schema.model_validate(payload).model_dump()
-    except ValidationError as exc: raise HTTPException(422,"; ".join(e["msg"] for e in exc.errors()))
+    except ValidationError as exc: raise HTTPException(422,"; ".join(".".join(map(str,e["loc"]))+": "+e["msg"] for e in exc.errors()))
     for field,model in [("programme_id",m.Programme),("faculty_id",m.Faculty),("cohort_id",m.Cohort)]:
         if values.get(field) is not None and not db.get(model,values[field]): raise HTTPException(422,f"Invalid {field}.")
     if entity=="modules" and db.get(m.Cohort,values["cohort_id"]).programme_id!=values["programme_id"]: raise HTTPException(422,"Module and cohort programmes must match.")
@@ -218,7 +218,7 @@ def edit(entity:str,ident:int,body:s.Mutation,db=Depends(get_db),user=Depends(cu
     if entity=="rules" and obj.kind=="Hard": raise HTTPException(403,"Hard constraints cannot be disabled.")
     values=validate_payload(entity,body.data,db)
     if entity=="users":
-        if ident==user.id and (not values["active"] or values["role"]!="Super Admin"): raise HTTPException(409,"You cannot remove your own administrator access.")
+        if ident==user.id and (not values["active"] or values["role"] not in ["Registrar","Super Admin"]): raise HTTPException(409,"You cannot disable your own Registrar account.")
         password=values.pop("password")
         if password: values["password_hash"]=password_hash(password)
     old=serialize(obj)

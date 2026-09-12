@@ -14,8 +14,8 @@ The implemented demonstration is: detect a timetable conflict → inspect its so
 - MongoDB is the only primary database. PyMongo, Pydantic and FastAPI provide persistence and APIs. Do not reintroduce SQLAlchemy, PostgreSQL or SQL migrations.
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide, Recharts, Axios, React Router. Native fetch consumes the optimizer NDJSON stream. No large component library or external state manager.
 - Default local storage uses MongoDB Community 8.0.32, a single-node replica set, and localhost binding. Transactions are required. Data is outside OneDrive in `%LOCALAPPDATA%\Nexus\MongoDB`. No Atlas account is created. Hosted deployments may configure Atlas.
-- Exactly one initial administrator is bootstrapped into an empty database. That administrator can add another administrator, as explicitly requested earlier. The UI calls this role Administrator; the persisted role string remains `Super Admin` for compatibility. Do not create root/system-owner/global-admin hierarchies.
-- Fixed roles also include Registrar, Admissions, HR Admin, Programme Admin, Facilities Admin, Faculty, and Student. Server-side permissions remain authoritative. There is no public registration. Teacher directory records do not create login accounts.
+- Exactly one initial Registrar is bootstrapped into an empty database. A Registrar can add another Registrar. Legacy `Super Admin` accounts migrate to Registrar during startup so existing local access survives. There is no public registration or extra administrator hierarchy.
+- The current account-creation UI and API accept only the Registrar role. Teacher directory records do not create login accounts.
 - Credentials belong only in environment/local configuration. No default bootstrap password exists in current source. The setup helper accepts hidden input and never prints passwords. Existing accounts are preserved. Test passwords are random per test process.
 
 ## Architecture and important files
@@ -62,7 +62,7 @@ Raw documents are local references in `College Details Assets` and `UI Reference
 
 The automatic demo loads only when operational faculty/cohort/module/session collections are empty and there is no prior marker. It uses one coherent Autumn 2026 Level 6 AI1 profile (Routine-4), six sessions and three modules. Each named AI group is assumed to contain 30 students; this is visibly labelled demo-derived. Combined lecture attendance sums all selected groups. The original 180-person Friday lecture is intentionally relocated from its 180-seat reference hall to LT-05 (100 seats), producing one explicit demo capacity conflict. The original source JSON is unchanged, and the altered session's notes preserve the actual source allocation. One workshop is locked for demonstration.
 
-Existing users and administrator edits are not overwritten. No fabricated student roster or staff login accounts are added to the running demo. Setting `NEXUS_LOAD_DEMO` false disables loading on an empty workspace. Rebuilding JSON extraction does not migrate existing database records.
+Existing users and Registrar edits are not overwritten. The expansion creates no staff login accounts. The private student PDF contributes only its verified 276-person Computing headcount; the database receives non-identifying generated planning students, not source names or IDs. Setting `NEXUS_LOAD_DEMO` false disables loading on an empty workspace. Rebuilding JSON extraction does not migrate existing database records.
 
 Historical assessment deadlines and exam windows are displayed separately from timed exam allocations. Missing exact exam time, room and invigilator remain unknown; do not convert broad windows into invented exam bookings.
 
@@ -82,9 +82,9 @@ The NDJSON endpoint reports stages only as real backend work advances. Two solve
 
 Islington is primary, NEXUS is product identity, ING is secondary. Preserve official logo aspect ratios and pixels. Use the untouched crest within the NEXUS geometric seal. Institutional navy remains primary, burgundy emphasizes signature/critical/active states, with neutral surfaces and restrained semantic colours. Do not turn the product into saturated generic SaaS or cyber-security styling.
 
-Command Center hierarchy: one Schedule Health panel → adjacent Active Issues → concise contextual Recommendations → lower-priority Operational Insights. The duplicate score ring/pressure-card area was removed from this screen. The global command bar and Cmd/Ctrl+K open search/assistance; avoid a giant assistant button beside the page title.
+The Command Center follows the live Figma preview: a five-metric health strip, then Schedule Intelligence, ranked recommendations, and weekly operational load in three columns. The global command bar and Cmd/Ctrl+K open search/assistance; avoid a giant assistant button beside the page title.
 
-The signature startup remains exactly five seconds before overlay removal, with Skip introduction and a one-second reduced-motion path. SVG academic nodes organize into the NEXUS seal. Theme, keyboard controls, visible focus and text/icon status cues remain.
+The signature startup is four seconds before overlay removal, with Skip introduction and immediate reduced-motion completion. SVG academic nodes organize into the NEXUS seal. Dark mode has been removed; keyboard controls, visible focus and text/icon status cues remain.
 
 Timetable Studio dynamically renders half-hour sessions and combined group names, retaining room/cohort/faculty/module views, selection inspector, drag-to-preview, lock and audited manual move. Provenance and the deliberate demo change are visible in session details. Faculty and programme details show source status and programme curriculum; unverified faculty email metadata is editable by authorized administrators.
 
@@ -107,6 +107,7 @@ COMPLETED and verified in this pass:
 - Approve/publish/what-if/manual override, audit, recipient drafts and notifications.
 - Read-only contextual assistant and expanded role-authorized global search.
 - Command Center cleanup, timetable updates, assessment reference view, reference hygiene and credential removal from current source.
+- Figma Command Center alignment, Registrar-only account creation, four-second startup, no dark mode, one-to-one faculty/module assignments, and non-identifying student planning data across every programme/year.
 - The final full suite passed: 43 backend tests against real MongoDB, including protected timetable actions and sanitized database failures. The production frontend build passed. Starlette's test-client integration emits one dependency deprecation warning.
 - Browser observations confirmed the authenticated Command Center's actual 83.3% health/one capacity issue, selecting the Friday 06:30 combined-group session, visible source/demo notes, and assistant context. Solver-to-publication is covered by API tests; do not claim every screen was manually tested at every breakpoint.
 

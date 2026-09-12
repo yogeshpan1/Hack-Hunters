@@ -81,6 +81,10 @@ Some examination durations are supplied: Network Operating Systems progress test
 
 MBA final-semester routes are alternatives, represented with an optional-group label, rather than simultaneous required modules. PG module codes remain null. Published credit values are retained as printed; apparent credit inconsistencies, particularly in the MBA Events and Tourism final-semester table, need programme-administrator confirmation before a credit audit. The programme catalogue should not be mistaken for a current module delivery plan.
 
+## Student planning overlay
+
+`Student Details.pdf` is a seven-page, Autumn 2024–25 BSc (Hons) Computing roster with 276 student rows. It is a local, private reference only: names, university IDs and College IDs are neither committed nor loaded into MongoDB. The demonstration uses that verified headcount for the BSc Computing Year 1 planning cohort and creates non-identifying synthetic student records. Other UG and PG programme/year cohorts use generated planning counts. Every generated record is labelled in its source, status and notes fields. Curriculum entries remain brochure-derived; the one-to-one lecturer/module allocation is a demo planning assignment and requires confirmation before operational use.
+
 ## Rebuilding and verification
 
 `scripts/extract-college-data.py` rebuilds `backend/data/college_catalog.json` from the local room CSV and brochure curriculum tables; it needs PyMuPDF only for rebuilding. `scripts/extract-operations-data.py` rebuilds `backend/data/college_operations.json` with Python's standard library. Its table rows are reviewed transcriptions of the images, while names are parsed from the CSV. The app does not need either extraction dependency or source folder at runtime.

@@ -50,6 +50,10 @@ class Cohort(Document):
     programme_id: int
     size: int
     level: int = 5
+    period: str = ""
+    intake: str = "Autumn"
+    academic_year: str = "2026/27"
+    status: str = "Active"
     source: str = ""
     data_status: str = "User entered"
     notes: str = ""
@@ -61,6 +65,9 @@ class Student(Document):
     email: str
     cohort_id: int
     status: str = "Active"
+    data_status: str = "User entered"
+    source: str = ""
+    notes: str = ""
 
 class Room(Document):
     collection: ClassVar[str] = "rooms"
@@ -85,6 +92,10 @@ class Module(Document):
     credits: int = 15
     room_type: str = "Classroom"
     resources: list = Field(default_factory=list)
+    catalogue_code: str = ""
+    programme_ids: list[int] = Field(default_factory=list)
+    cohort_ids: list[int] = Field(default_factory=list)
+    offerings: list[dict] = Field(default_factory=list)
     source: str = ""
     data_status: str = "User entered"
     notes: str = ""

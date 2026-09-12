@@ -13,8 +13,11 @@ CATALOG_PATH = Path(__file__).resolve().parents[1] / 'data' / 'college_catalog.j
 
 def seed(db):
     from .reference_seed import load_reference_demo
+    from .demo_expansion import migrate_registrar, expand_college_demo
     if db.first(User):
+        migrate_registrar(db)
         load_reference_demo(db)
+        expand_college_demo(db)
         return
     catalog=json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
     for record in catalog['programmes']: db.add(Programme(**record))
@@ -23,7 +26,7 @@ def seed(db):
     if len(password)<10: raise ValueError('NEXUS_ADMIN_PASSWORD must have at least 10 characters.')
     email=os.getenv('NEXUS_ADMIN_EMAIL','').strip().lower()
     if '@' not in email: raise ValueError('Set NEXUS_ADMIN_EMAIL before initializing an empty database.')
-    admin=User(id=1,name=os.getenv('NEXUS_ADMIN_NAME') or 'NEXUS Administrator',email=email,password_hash=password_hash(password),role='Super Admin')
+    admin=User(id=1,name=os.getenv('NEXUS_ADMIN_NAME') or 'NEXUS Registrar',email=email,password_hash=password_hash(password),role='Registrar')
     db.add(admin)
     db.add(ScheduleVersion(id=1,revision=1))
     for name in ['No room double booking','No faculty double booking','No cohort overlaps','Capacity and required equipment','Availability and locked sessions']:
@@ -33,3 +36,4 @@ def seed(db):
     db.add(AuditLog(user_id=admin.id,actor=admin.name,role=admin.role,action='COLLEGE INITIALIZED',entity='College inventory',reason='Imported supplied classroom inventory and UG/PG brochure curriculum; created the first administrator.',new={'rooms':len(catalog['rooms']),'programmes':len(catalog['programmes'])},result='Ready'))
     db.commit()
     load_reference_demo(db)
+    expand_college_demo(db)

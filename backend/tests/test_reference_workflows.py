@@ -14,7 +14,11 @@ def test_reference_demo_end_to_end(empty_database,monkeypatch):
     with MongoSession(empty_database) as db:
         seed(db);seed(db)
         assert len(db.find(m.User))==1
-        assert len(db.find(m.Faculty))==153
+        sourced=[person for person in db.find(m.Faculty) if person.code.startswith('FAC')]
+        assert len(sourced)==153
+        assignments=[module.faculty_id for module in db.find(m.Module)]
+        assert len(assignments)==len(set(assignments))
+        assert len(db.find(m.Student))>=276
         assert len(db.find(m.TimetableSession))==6
         assert len(db.find(m.AssessmentReference))==25
         data=snapshot(db)
@@ -47,8 +51,9 @@ def test_reference_demo_end_to_end(empty_database,monkeypatch):
         assert client.get('/api/notifications').json()
         assert all('example.test' not in e['recipient'] for e in client.get('/api/emails').json())
         with MongoSession(empty_database) as db:
-            assert db.first(m.ConflictSnapshot,{'revision':3}).conflict_count==0
-            assert db.first(m.ConflictSnapshot,{'revision':2}).conflict_count==1
+            current_revision=db.first(m.ScheduleVersion).revision
+            assert db.first(m.ConflictSnapshot,{'revision':current_revision}).conflict_count==0
+            assert any(s.conflict_count==1 for s in db.find(m.ConflictSnapshot))
     finally: app.dependency_overrides.clear()
 
 

@@ -5,7 +5,12 @@ from .auth import ROLES
 class Strict(BaseModel):
     model_config=ConfigDict(extra="forbid", str_strip_whitespace=True)
 
-class Login(Strict):
+class EmailRecord(Strict):
+    @field_validator("email",check_fields=False)
+    @classmethod
+    def normalize_email(cls,value): return value.strip().lower()
+
+class Login(EmailRecord):
     email: str
     password: str
 
@@ -30,11 +35,11 @@ class RoomInput(Strict):
             if not valid: raise ValueError("Availability must use day:hour on half-hours, e.g. 5:6.5 (Sunday 06:30).")
         return values
 
-class FacultyInput(Strict):
+class FacultyInput(EmailRecord):
     name: str=Field(min_length=1,max_length=100)
     code: str=Field(min_length=1,max_length=40)
     department: str=Field(min_length=1,max_length=100)
-    email: str=Field(default="",max_length=200)
+    email: str=Field(default="",max_length=200,pattern=r"^$|^[^\s@]+@[^\s@]+\.[^\s@]+$")
     email_verified: bool=False
     max_hours: int=Field(default=18,ge=1,le=40)
     unavailable: list[str]=[]
@@ -60,14 +65,14 @@ class ModuleInput(Strict):
     room_type: Literal["Classroom","Lab","Studio"]="Classroom"
     resources: list[str]=[]
 
-class StudentInput(Strict):
+class StudentInput(EmailRecord):
     code: str=Field(min_length=1,max_length=40)
     name: str=Field(min_length=1,max_length=100)
     email: str=Field(pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     cohort_id: int=Field(gt=0)
     status: Literal["Active","Inactive","Graduated"]="Active"
 
-class UserInput(Strict):
+class UserInput(EmailRecord):
     name: str=Field(min_length=1,max_length=100)
     email: str=Field(pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     role: str

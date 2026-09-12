@@ -14,7 +14,7 @@ def test_college_bootstrap_is_idempotent_and_has_one_admin(empty_database):
     with MongoSession(empty_database) as db:
         seed(db);seed(db)
         assert len(db.find(m.User))==1
-        assert db.first(m.User).role=='Super Admin'
+        assert db.first(m.User).role=='Registrar'
         rooms=db.find(m.Room)
         assert len(rooms)==55
         assert sum(r.capacity for r in rooms)==2821
@@ -27,21 +27,22 @@ def test_college_bootstrap_is_idempotent_and_has_one_admin(empty_database):
         assert not db.find(m.TimetableSession)
         assert not db.find(m.Faculty)
 
-def test_administrator_can_create_another_admin_but_cannot_lock_itself_out(client):
+def test_registrar_can_create_another_registrar_but_cannot_lock_itself_out(client):
     sign_in(client,'admin')
-    response=client.post('/api/data/users',json={'data':{'name':'Second Admin','email':'second@example.test','role':'Super Admin','password':SECOND_PASSWORD},'reason':'Add the second administrator'})
+    response=client.post('/api/data/users',json={'data':{'name':'Second Registrar','email':'SECOND@example.test','role':'Registrar','password':SECOND_PASSWORD},'reason':'Add the second Registrar'})
     assert response.status_code==200,response.text
     response=client.post('/api/auth/login',json={'email':'second@example.test','password':SECOND_PASSWORD})
     assert response.status_code==200
     client.headers['Authorization']='Bearer '+response.json()['token']
     account=response.json()['user']
     assert client.get('/api/data/users').status_code==200
-    assert client.put(f'/api/data/users/{account["id"]}',json={'data':{'name':'Second Admin','email':'second@example.test','role':'Super Admin','active':False},'reason':'Try disabling own account'}).status_code==409
+    assert client.put(f'/api/data/users/{account["id"]}',json={'data':{'name':'Second Registrar','email':'SECOND@example.test','role':'Registrar','active':False},'reason':'Try disabling own account'}).status_code==409
 
-def test_last_active_admin_guard_in_repository(database):
+def test_last_active_registrar_guard_in_repository(database):
     with MongoSession(database) as db:
+        db.get(m.User,1).active=False
         db.get(m.User,2).active=False
-        with pytest.raises(StorageConflict,match='administrator'): db.commit()
+        with pytest.raises(StorageConflict,match='Registrar'): db.commit()
     assert database.users.find_one({'id':2})['active'] is True
 
 def test_transaction_rolls_back_partial_work_on_invalid_reference(database):

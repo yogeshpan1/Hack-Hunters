@@ -155,8 +155,8 @@ class MongoSession:
                     if ident is not None and not self.database[target].find_one({"id":ident},session=self._transaction()):
                         raise StorageConflict(f"Referenced {target} record does not exist.")
             if any(k[0]=="users" for k,_ in changed) or any(k[0]=="users" for k in self.deleted):
-                if not self.database.users.find_one({"role":"Super Admin","active":True},session=self._transaction()):
-                    raise StorageConflict("At least one active administrator must remain.")
+                if not self.database.users.find_one({"role":{"$in":["Registrar","Super Admin"]},"active":True},session=self._transaction()):
+                    raise StorageConflict("At least one active Registrar must remain.")
             if any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions","rules","schedule_versions"} for k,_ in changed) or any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions"} for k in self.deleted):
                 from .conflict_store import persist_conflicts
                 persist_conflicts(self)

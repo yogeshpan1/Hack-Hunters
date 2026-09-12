@@ -12,8 +12,8 @@ from .models import User
 # A process-local random key is safe for an unconfigured local demo; restarts expire tokens.
 SECRET = os.getenv("JWT_SECRET") or secrets.token_hex(32)
 bearer = HTTPBearer(auto_error=False)
-ROLES = ["Super Admin", "Registrar", "Admissions", "HR Admin", "Programme Admin", "Facilities Admin", "Faculty", "Student"]
-MANAGE = {"rooms": ["Facilities Admin"], "faculty": ["HR Admin"], "programmes": ["Programme Admin", "Admissions"], "modules": ["Programme Admin"], "cohorts": ["Programme Admin", "Admissions"], "students": ["Admissions"], "users": [], "sessions":["Registrar"], "rules": ["Registrar"]}
+ROLES = ["Registrar"]
+MANAGE = {entity: ["Registrar"] for entity in ["rooms", "faculty", "programmes", "modules", "cohorts", "students", "users", "sessions", "rules"]}
 
 def password_hash(password, salt=None):
     salt = salt or secrets.token_hex(16)
@@ -37,7 +37,7 @@ def current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer), db
         raise HTTPException(401, "Please sign in again.")
 
 def require(user, roles):
-    if user.role not in ["Super Admin", *roles]:
+    if user.role not in ["Super Admin", "Registrar", *roles]:
         raise HTTPException(403, "Your role does not permit this action.")
 
 def public_user(user):
