@@ -24,11 +24,11 @@ def verify_password(password, value):
     return hmac.compare_digest(password_hash(password, value.split("$")[0]), value)
 
 def token_for(user):
-    return jwt.encode({"sub": str(user.id), "exp": datetime.now(timezone.utc) + timedelta(hours=8)}, SECRET, algorithm="HS256")
+    return jwt.encode({"sub": str(user.id), "iss":"nexus-mongodb-v1", "exp": datetime.now(timezone.utc) + timedelta(hours=8)}, SECRET, algorithm="HS256")
 
 def current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer), db=Depends(get_db)):
     try:
-        data = jwt.decode(credentials.credentials, SECRET, algorithms=["HS256"]) if credentials else {}
+        data = jwt.decode(credentials.credentials, SECRET, algorithms=["HS256"],issuer="nexus-mongodb-v1",options={"require":["sub","exp","iss"]}) if credentials else {}
         user = db.get(User, int(data["sub"]))
         if not user or not user.active:
             raise ValueError()

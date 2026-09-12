@@ -12,6 +12,8 @@ class Login(Strict):
 class RoomInput(Strict):
     name: str = Field(min_length=1,max_length=100)
     building: str = Field(min_length=1,max_length=100)
+    display_name: str = Field(default="",max_length=150)
+    pc_count: int = Field(default=0,ge=0,le=1000)
     capacity: int = Field(ge=1,le=1000)
     kind: Literal["Classroom","Lab","Studio"]="Classroom"
     equipment: list[str]=[]
@@ -98,6 +100,14 @@ class Move(Reason):
 
 class Lock(Reason):
     locked: bool
+    revision: int
+
+class SessionInput(Reason):
+    module_id: int = Field(gt=0)
+    room_id: int = Field(gt=0)
+    day: int = Field(ge=0,le=4)
+    start: int = Field(ge=9,le=16)
+    duration: int = Field(default=2,ge=1,le=8)
     revision: int
 
 class Question(Strict):

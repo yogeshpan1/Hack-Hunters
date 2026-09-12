@@ -1,11 +1,11 @@
 import pytest
-from sqlalchemy import select
 from conftest import sign_in
 from app import models as m
+from app.main import ENTITIES
 from app.scheduling import snapshot,conflicts,enriched,solve
 
 def test_health_auth_and_invalid_password(client):
-    assert client.get("/api/health").json()["database"]=="connected"
+    assert client.get("/api/health").json()["database"]=="MongoDB"
     assert client.get("/api/workspace").status_code==401
     assert client.post("/api/auth/login",json={"email":"registrar@nexus.demo","password":"wrong"}).status_code==401
 
@@ -61,7 +61,7 @@ def test_infeasible_locked_capacity_returns_clear_failure(db):
 def test_stale_run_is_rejected_after_inputs_change(registrar):
     run=registrar.post("/api/optimization",json={}).json()
     sign_in(registrar,"admin")
-    room=registrar.get("/api/data/rooms").json()[0]; ident=room.pop("id"); room["capacity"]=25
+    room=registrar.get("/api/data/rooms").json()[0]; ident=room.pop("id"); room.pop("source",None); room["capacity"]=25
     assert registrar.put(f"/api/data/rooms/{ident}",json={"data":room,"reason":"Updated capacity after inspection"}).status_code==200
     assert registrar.post(f'/api/optimization/{run["id"]}/approve',json={"reason":"Approve a now stale proposal"}).status_code==409
 
@@ -111,6 +111,7 @@ def test_crud_validation_and_audit(client,entity,data):
     created=client.post(f"/api/data/{entity}",json={"data":data,"reason":"Create test academic record"})
     assert created.status_code==200,created.text
     obj=created.json(); ident=obj.pop("id")
+    obj={key:value for key,value in obj.items() if key in ENTITIES[entity][1].model_fields}
     obj["name"]="Updated test record"
     assert client.put(f"/api/data/{entity}/{ident}",json={"data":obj,"reason":"Correct academic record name"}).status_code==200
     assert client.request("DELETE",f"/api/data/{entity}/{ident}",json={"reason":"Remove unused test record"}).status_code==200

@@ -1,41 +1,45 @@
 import sys
+import uuid
 from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from app.db import Base,get_db
+from app.db import client as mongo_client, MongoSession, initialize_database, get_db
 from app.main import app
-from app.seed import seed
+from demo_seed import seed
 
 @pytest.fixture
-def db():
-    engine=create_engine("sqlite://",connect_args={"check_same_thread":False},poolclass=StaticPool)
-    Base.metadata.create_all(engine)
-    factory=sessionmaker(bind=engine,expire_on_commit=False)
-    with factory() as session:
-        seed(session)
-        yield session
-    engine.dispose()
+def empty_database():
+    name='nexus_test_'+uuid.uuid4().hex
+    database=initialize_database(mongo_client[name])
+    yield database
+    assert name.startswith('nexus_test_') and len(name)==43
+    mongo_client.drop_database(name)
 
 @pytest.fixture
-def client(db):
-    app.dependency_overrides[get_db]=lambda:db
-    c=TestClient(app)
-    yield c
+def database(empty_database):
+    with MongoSession(empty_database) as db: seed(db)
+    return empty_database
+
+@pytest.fixture
+def db(database):
+    with MongoSession(database) as db: yield db
+
+@pytest.fixture
+def client(database):
+    def request_db():
+        with MongoSession(database) as db: yield db
+    app.dependency_overrides[get_db]=request_db
+    yield TestClient(app)
     app.dependency_overrides.clear()
 
 @pytest.fixture
 def registrar(client):
-    r=client.post("/api/auth/login",json={"email":"registrar@nexus.demo","password":"NexusDemo!2026"})
-    assert r.status_code==200
-    client.headers["Authorization"]="Bearer "+r.json()["token"]
+    sign_in(client,'registrar')
     return client
 
 def sign_in(client,role):
-    r=client.post("/api/auth/login",json={"email":f"{role}@nexus.demo","password":"NexusDemo!2026"})
-    assert r.status_code==200
-    client.headers["Authorization"]="Bearer "+r.json()["token"]
+    response=client.post('/api/auth/login',json={'email':f'{role}@nexus.demo','password':'NexusDemo!2026'})
+    assert response.status_code==200,response.text
+    client.headers['Authorization']='Bearer '+response.json()['token']

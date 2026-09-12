@@ -5,10 +5,8 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select, text
-from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
-from .db import Base,engine,SessionLocal,get_db
+from .db import SessionLocal,get_db,initialize_database,StorageConflict
 from . import models as m, schemas as s
 from .auth import current_user,require,token_for,verify_password,password_hash,public_user,MANAGE
 from .scheduling import snapshot,enriched,conflicts,metrics,solve,changes_for,serialize,DAYS
@@ -17,27 +15,27 @@ from .seed import seed
 
 @asynccontextmanager
 async def lifespan(app):
-    Base.metadata.create_all(engine)
+    initialize_database()
     with SessionLocal() as db: seed(db)
     yield
 
 app=FastAPI(title="NEXUS · Academic Operations Intelligence",version="1.0.0",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=["http://127.0.0.1:5173","http://localhost:5173"],allow_methods=["GET","POST","PUT","PATCH","DELETE"],allow_headers=["Authorization","Content-Type"])
 
-@app.exception_handler(IntegrityError)
+@app.exception_handler(StorageConflict)
 async def integrity_error(request,exc):
-    return JSONResponse(status_code=409,content={"detail":"A record with that code/name already exists, or a referenced record is missing/in use."})
+    return JSONResponse(status_code=409,content={"detail":str(exc)})
 
 @app.get("/api/health")
 def health(db=Depends(get_db)):
-    db.execute(text("SELECT 1"))
-    return {"status":"ok","demo":True,"database":"connected"}
+    db.ping()
+    return {"status":"ok","demo":True,"database":"MongoDB"}
 
 @app.post("/api/auth/login")
 def login(body:s.Login,db=Depends(get_db)):
-    user=db.scalar(select(m.User).where(m.User.email==body.email.lower()))
+    user=db.first(m.User,{"email":body.email.lower()})
     if not user or not user.active or not verify_password(body.password,user.password_hash): raise HTTPException(401,"Incorrect email or password.")
-    audit(db,user,"SIGNED IN","User",reason="Local demo authentication"); db.commit()
+    audit(db,user,"SIGNED IN","User",reason="Local application authentication"); db.commit()
     return {"token":token_for(user),"user":public_user(user)}
 
 @app.get("/api/auth/me")
@@ -50,11 +48,26 @@ def workspace(db=Depends(get_db),user=Depends(current_user)):
         mids={x["module_id"] for x in sessions}; fids={x["faculty_id"] for x in sessions}; cids={x["cohort_id"] for x in sessions}
         data["sessions"]=[x for x in data["sessions"] if x["id"] in ids]; data["modules"]=[x for x in data["modules"] if x["id"] in mids]; data["faculty"]=[x for x in data["faculty"] if x["id"] in fids]; data["cohorts"]=[x for x in data["cohorts"] if x["id"] in cids]
         issues=conflicts(data)
-    return {**data,"sessions":sessions,"conflicts":issues,"metrics":metrics(data),"programmes":[serialize(x) for x in db.scalars(select(m.Programme)).all()],"revision":revision(db),"demo":True}
+    return {**data,"sessions":sessions,"conflicts":issues,"metrics":metrics(data),"programmes":[serialize(x) for x in db.find(m.Programme)],"revision":revision(db),"demo":True}
 
 @app.get("/api/timetable")
 def timetable(db=Depends(get_db),user=Depends(current_user)):
     return visible_sessions(user,enriched(snapshot(db)))
+
+@app.post("/api/timetable")
+def create_session(body:s.SessionInput,db=Depends(get_db),user=Depends(current_user)):
+    require(user,["Registrar"])
+    if not db.get(m.Module,body.module_id) or not db.get(m.Room,body.room_id):
+        raise HTTPException(422,"Select an existing assigned module and room.")
+    if body.revision!=revision(db): raise HTTPException(409,"The timetable changed. Refresh and retry.")
+    obj=m.TimetableSession(**body.model_dump(exclude={"reason","revision"}))
+    db.add(obj);db.flush()
+    issues=[c for c in conflicts(snapshot(db)) if obj.id in c['session_ids']]
+    if issues: raise HTTPException(409,"; ".join(c['detail'] for c in issues))
+    bump(db,body.revision)
+    audit(db,user,"SESSION CREATED",f"Session {obj.id}",new=serialize(obj),reason=body.reason)
+    db.commit()
+    return serialize(obj)
 
 @app.get("/api/conflicts")
 def get_conflicts(db=Depends(get_db),user=Depends(current_user)):
@@ -102,7 +115,7 @@ def what_if(body:s.RunInput,db=Depends(get_db),user=Depends(current_user)):
 
 @app.get("/api/optimization")
 def runs(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.scalars(select(m.OptimizationRun).order_by(m.OptimizationRun.id.desc()).limit(30)).all()]
+    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.OptimizationRun,descending=True,limit=30)]
 
 @app.post("/api/optimization/{ident}/{action}")
 def run_action(ident:int,action:str,body:s.Reason,db=Depends(get_db),user=Depends(current_user)):
@@ -149,6 +162,14 @@ def validate_payload(entity,payload,db):
     for field,model in [("programme_id",m.Programme),("faculty_id",m.Faculty),("cohort_id",m.Cohort)]:
         if values.get(field) is not None and not db.get(model,values[field]): raise HTTPException(422,f"Invalid {field}.")
     if entity=="modules" and db.get(m.Cohort,values["cohort_id"]).programme_id!=values["programme_id"]: raise HTTPException(422,"Module and cohort programmes must match.")
+    if entity=="rooms":
+        if values["building"].strip().lower()=="skill":
+            values["kind"]="Lab"
+            values["pc_count"]=values["capacity"]
+            values["equipment"]=sorted(set(values["equipment"])|{"Computers","AC","Projector"})
+        else:
+            if values["pc_count"]>values["capacity"]: raise HTTPException(422,"PC count cannot exceed the sitting capacity.")
+            values["equipment"]=sorted(set(values["equipment"])|{"AC","Projector"})
     if entity=="users":
         if values["role"]=="Faculty" and not values.get("faculty_id"): raise HTTPException(422,"Faculty users require a faculty assignment.")
         if values["role"]=="Student" and not values.get("cohort_id"): raise HTTPException(422,"Student users require a cohort assignment.")
@@ -160,7 +181,7 @@ def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
     if entity=="users": require(user,[])
     if entity=="students": require(user,["Registrar","Admissions","Programme Admin"])
     if user.role in ["Student","Faculty"] and entity in ["faculty","modules","cohorts"]: return workspace(db,user)[entity]
-    return [serialize(x) for x in db.scalars(select(model).order_by(model.id)).all()]
+    return [serialize(x) for x in db.find(model)]
 
 @app.post("/api/data/{entity}")
 def create(entity:str,body:s.Mutation,db=Depends(get_db),user=Depends(current_user)):
@@ -203,7 +224,7 @@ def import_data(body:s.ImportInput,db=Depends(get_db),user=Depends(current_user)
     model,_=entity_info(body.entity)
     keys=["name"] if body.entity in ["rooms","programmes","cohorts"] else ["code"]
     for key in keys:
-        seen=set(db.scalars(select(getattr(model,key))).all())
+        seen=set([getattr(x,key) for x in db.find(model)])
         for i,row in enumerate(values,1):
             if row[key] in seen: errors.append({"row":i,"error":f"Duplicate {key}: {row[key]}"})
             seen.add(row[key])
@@ -215,7 +236,7 @@ def import_data(body:s.ImportInput,db=Depends(get_db),user=Depends(current_user)
 
 @app.get("/api/audit")
 def audit_log(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.scalars(select(m.AuditLog).order_by(m.AuditLog.id.desc()).limit(500)).all()]
+    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.AuditLog,descending=True,limit=500)]
 
 @app.get("/api/audit/export")
 def export_audit(db=Depends(get_db),user=Depends(current_user)):
@@ -226,14 +247,14 @@ def export_audit(db=Depends(get_db),user=Depends(current_user)):
 
 @app.get("/api/notifications")
 def notifications(db=Depends(get_db),user=Depends(current_user)):
-    rows=db.scalars(select(m.Notification).order_by(m.Notification.id.desc())).all()
+    rows=db.find(m.Notification,descending=True)
     if user.role=="Student": rows=[x for x in rows if x.user_id==user.id or x.cohort_id==user.cohort_id]
     elif user.role=="Faculty": rows=[x for x in rows if x.user_id==user.id or x.faculty_id==user.faculty_id]
     return [serialize(x) for x in rows]
 
 @app.get("/api/emails")
 def emails(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.scalars(select(m.Email).order_by(m.Email.id.desc()).limit(1000)).all()]
+    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.Email,descending=True,limit=1000)]
 
 @app.put("/api/emails/{ident}")
 def edit_email(ident:int,body:s.EmailInput,db=Depends(get_db),user=Depends(current_user)):
@@ -251,7 +272,7 @@ def edit_email(ident:int,body:s.EmailInput,db=Depends(get_db),user=Depends(curre
 @app.post("/api/emails/deliver-due")
 def deliver_due(db=Depends(get_db),user=Depends(current_user)):
     require(user,["Registrar"]); count=0
-    for email in db.scalars(select(m.Email).where(m.Email.status=="Demo scheduled")).all():
+    for email in db.find(m.Email,{"status":"Demo scheduled"}):
         if datetime.fromisoformat(email.scheduled_at)<=datetime.now(timezone.utc):
             email.status="Demo delivered"; count+=1; audit(db,user,"EMAIL DEMO DELIVERY",f"Email {email.id}",reason="Process due demo outbox")
     db.commit(); return {"delivered":count}
@@ -259,7 +280,7 @@ def deliver_due(db=Depends(get_db),user=Depends(current_user)):
 @app.get("/api/exams")
 def exams(db=Depends(get_db),user=Depends(current_user)):
     data=snapshot(db); modules={x["id"]:x for x in data["modules"]}; rooms={x["id"]:x for x in data["rooms"]}; cohorts={x["id"]:x for x in data["cohorts"]}; faculty={x["id"]:x for x in data["faculty"]}; rows=[]
-    all_exams=db.scalars(select(m.ExamSession)).all()
+    all_exams=db.find(m.ExamSession)
     for exam in all_exams:
         mod=modules[exam.module_id]; room=rooms[exam.room_id]; cohort=cohorts[mod["cohort_id"]]
         if user.role=="Student" and user.cohort_id!=cohort["id"]: continue

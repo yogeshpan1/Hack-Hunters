@@ -1,16 +1,15 @@
 from collections import Counter, defaultdict
 from ortools.sat.python import cp_model
-from sqlalchemy import select
 from .models import Room, Faculty, Cohort, Module, TimetableSession, Rule, Student
 
 DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday"]
 
 def serialize(obj):
-    return {c.name:getattr(obj,c.name) for c in obj.__table__.columns if c.name!="password_hash"}
+    return obj.model_dump(exclude={"password_hash"})
 
 def snapshot(db):
-    data={key:[serialize(x) for x in db.scalars(select(model).order_by(model.id)).all()] for key,model in [("rooms",Room),("faculty",Faculty),("cohorts",Cohort),("modules",Module),("sessions",TimetableSession),("rules",Rule)]}
-    enrolled=Counter(db.scalars(select(Student.cohort_id).where(Student.status=="Active")).all())
+    data={key:[serialize(x) for x in db.find(model)] for key,model in [("rooms",Room),("faculty",Faculty),("cohorts",Cohort),("modules",Module),("sessions",TimetableSession),("rules",Rule)]}
+    enrolled=Counter([x.cohort_id for x in db.find(Student,{"status":"Active"})])
     for cohort in data["cohorts"]:
         cohort["size"]=max(cohort["size"],enrolled[cohort["id"]])
     return data
@@ -32,6 +31,7 @@ def conflicts(data, assignments=None, scenario=None):
     for s in sessions:
         r=rooms[s["room_id"]]; f=faculty[s["faculty_id"]]; slots=[f'{s["day"]}:{h}' for h in range(s["start"],s["start"]+s["duration"])]
         if s["size"]>r["capacity"]: add("Capacity",[s],f'{s["size"]} students · {r["capacity"]}-seat {r["name"]}')
+        if "Computers" in s["resources"] and s["size"]>r.get("pc_count",0): add("PC capacity",[s],f'{s["size"]} students need computers; {r["name"]} has {r.get("pc_count",0)} confirmed PCs')
         if r["kind"]!=s["room_type"] or not set(s["resources"]).issubset(r["equipment"]): add("Equipment",[s],f'{s["code"]} requires {s["room_type"]} with {", ".join(s["resources"])}')
         if not r["active"] or set(slots)&set(r["unavailable"]) or (scenario and scenario.get("room_id")==r["id"] and scenario.get("day")==s["day"]): add("Room unavailable",[s],f'{r["name"]} is unavailable at this time')
         if set(slots)&set(f["unavailable"]): add("Faculty unavailable",[s],f'{f["name"]} is unavailable at this time')
@@ -49,7 +49,7 @@ def metrics(data,assignments=None,scenario=None):
     occupied={(s["room_id"],s["day"],h) for s in sessions for h in range(s["start"],s["start"]+s["duration"])}
     available={(r["id"],d,h) for r in data["rooms"] if r["active"] for d in range(5) for h in range(9,17) if f"{d}:{h}" not in r["unavailable"] and not (scenario and scenario.get("room_id")==r["id"] and scenario.get("day")==d)}
     overload=sum(loads[f["id"]]>f["max_hours"] for f in data["faculty"])
-    return {"health":round(100*(1-len(affected)/max(1,len(sessions))),1),"conflicts":len(issues),"conflict_free":round(100*(1-len(affected)/max(1,len(sessions))),1),"utilization":round(100*len(occupied&available)/max(1,len(available)),1),"faculty_balance":round(100*(1-overload/max(1,len(data["faculty"]))),1),"overloads":overload,"sessions":len(sessions),"teaching_hours":sum(s["duration"] for s in sessions)}
+    return {"health":round(100*(1-len(affected)/len(sessions)),1) if sessions else 0,"conflicts":len(issues),"conflict_free":round(100*(1-len(affected)/len(sessions)),1) if sessions else 0,"utilization":round(100*len(occupied&available)/max(1,len(available)),1),"faculty_balance":round(100*(1-overload/len(data["faculty"])),1) if data["faculty"] else 0,"overloads":overload,"sessions":len(sessions),"teaching_hours":sum(s["duration"] for s in sessions)}
 
 def solve(data,scenario=None):
     model=cp_model.CpModel(); sessions=enriched(data); faculty={f["id"]:f for f in data["faculty"]}; options={}; bookings=defaultdict(list); costs=[]
@@ -59,6 +59,7 @@ def solve(data,scenario=None):
         candidates=[]
         for r in data["rooms"]:
             if not r["active"] or r["capacity"]<s["size"] or r["kind"]!=s["room_type"] or not set(s["resources"]).issubset(r["equipment"]): continue
+            if "Computers" in s["resources"] and r.get("pc_count",0)<s["size"]: continue
             for d in range(5):
                 if scenario and scenario.get("room_id")==r["id"] and scenario.get("day")==d: continue
                 for h in range(9,18-s["duration"]):
