@@ -92,6 +92,7 @@ class Mutation(Strict):
     reason: str=Field(min_length=5,max_length=500)
 
 class RunInput(Strict):
+    strategy: Literal['balanced','rooms','faculty']='balanced'
     room_id: int | None=None
     day: int | None=Field(default=None,ge=0,le=5)
 

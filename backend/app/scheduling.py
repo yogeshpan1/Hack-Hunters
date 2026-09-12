@@ -70,11 +70,12 @@ def metrics(data,assignments=None,scenario=None):
     overload=sum(loads[f["id"]]>f["max_hours"] for f in data["faculty"])
     return {"health":round(100*(1-len(affected)/len(sessions)),1) if sessions else 0,"conflicts":len(issues),"conflict_free":round(100*(1-len(affected)/len(sessions)),1) if sessions else 0,"utilization":round(100*len(occupied&available)/max(1,len(available)),1),"faculty_balance":round(100*(1-overload/len(data["faculty"])),1) if data["faculty"] else 0,"overloads":overload,"sessions":len(sessions),"teaching_hours":sum(s["duration"] for s in sessions)}
 
-def solve(data,scenario=None,progress=None):
+def solve(data,scenario=None,progress=None,strategy='balanced'):
     progress=progress or (lambda stage,label:None)
     progress("constraints","Checking constraints")
     model=cp_model.CpModel(); sessions=enriched(data); faculty={f["id"]:f for f in data["faculty"]}; options={}; bookings=defaultdict(list); costs=[]
     weights={r["name"]:r["weight"] for r in data["rules"] if r["kind"]=="Soft"}
+    if strategy=='faculty': weights['Balance faculty days']=max(20,weights.get('Balance faculty days',2)*5)
     cohort_day=defaultdict(list); faculty_day=defaultdict(list)
     progress("capacity","Checking room capacity, type and equipment")
     eligible={s['id']:[r for r in data['rooms'] if r['active'] and r['capacity']>=s['size'] and r['kind']==s['room_type'] and set(s['resources'])<=set(r['equipment']) and ('Computers' not in s['resources'] or r.get('pc_count',0)>=s['size'])] for s in sessions}
@@ -94,6 +95,7 @@ def solve(data,scenario=None,progress=None):
                     candidates.append((v,{"id":s["id"],"room_id":r["id"],"day":d,"start":h}))
                     changed=(r["id"],d,h)!=(s["room_id"],s["day"],s["start"])
                     cost=int(changed)*weights.get("Minimize changes",10)+(weights.get("Avoid first period",2) if h==6.5 else 0)
+                    if strategy=='rooms': cost += (r['capacity']-s['size'])//5
                     costs.append(cost*v)
                     for hour in ticks(h,s["duration"]):
                         for kind,ident in [("room",r["id"]),("faculty",s["faculty_id"])]+[("cohort",cid) for cid in s["cohort_ids"]]: bookings[kind,ident,d,hour].append(v)

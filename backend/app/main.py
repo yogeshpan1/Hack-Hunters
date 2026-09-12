@@ -29,6 +29,8 @@ app=FastAPI(title="NEXUS · Academic Operations Intelligence",version="1.0.0",li
 app.add_middleware(CORSMiddleware,allow_origins=["http://127.0.0.1:5173","http://localhost:5173"],allow_methods=["GET","POST","PUT","PATCH","DELETE"],allow_headers=["Authorization","Content-Type"])
 
 app.include_router(optimizer_router)
+from .exam_routes import router as exam_router
+app.include_router(exam_router)
 
 @app.exception_handler(PyMongoError)
 async def database_error(request,exc):
@@ -276,18 +278,14 @@ def deliver_due(db=Depends(get_db),user=Depends(current_user)):
 @app.get("/api/exams")
 def exams(db=Depends(get_db),user=Depends(current_user)):
     data=snapshot(db); modules={x["id"]:x for x in data["modules"]}; rooms={x["id"]:x for x in data["rooms"]}; cohorts={x["id"]:x for x in data["cohorts"]}; faculty={x["id"]:x for x in data["faculty"]}; rows=[]
+    from .exam_routes import issues_for
     all_exams=db.find(m.ExamSession)
+    exam_records=[serialize(exam) for exam in all_exams]
     for exam in all_exams:
         mod=modules[exam.module_id]; room=rooms[exam.room_id]; cohort=cohorts[mod["cohort_id"]]
         if user.role=="Student" and user.cohort_id!=cohort["id"]: continue
         if user.role=="Faculty" and user.faculty_id!=exam.invigilator_id: continue
-        issues=[]
-        if cohort["size"]>room["capacity"]: issues.append("Venue capacity exceeded")
-        for other in all_exams:
-            if exam.id==other.id or exam.date!=other.date or exam.start>=other.start+other.duration or other.start>=exam.start+exam.duration: continue
-            if exam.room_id==other.room_id: issues.append("Venue clash")
-            if exam.invigilator_id==other.invigilator_id: issues.append("Invigilator clash")
-            if mod["cohort_id"]==modules[other.module_id]["cohort_id"]: issues.append("Cohort clash")
+        issues=issues_for(serialize(exam),exam_records,data)
         rows.append({**serialize(exam),"code":mod["code"],"module":mod["name"],"room":room["name"],"capacity":room["capacity"],"students":cohort["size"],"invigilator":faculty[exam.invigilator_id]["name"],"conflicts":issues})
     return rows
 
@@ -295,6 +293,11 @@ def exams(db=Depends(get_db),user=Depends(current_user)):
 def analytics(db=Depends(get_db),user=Depends(current_user)):
     w=workspace(db,user)
     return {"metrics":w["metrics"],"room_hours":[{"name":r["name"],"hours":sum(x["duration"] for x in w["sessions"] if x["room_id"]==r["id"])} for r in w["rooms"]],"daily_hours":[{"name":day[:3],"hours":sum(x["duration"] for x in w["sessions"] if x["day"]==i)} for i,day in enumerate(DAYS)]}
+
+@app.get('/api/analytics/conflict-history')
+def conflict_history(db=Depends(get_db),user=Depends(current_user)):
+    require(user,['Registrar'])
+    return [serialize(x) for x in reversed(db.find(m.ConflictSnapshot,descending=True,limit=30))]
 
 from .intelligence_routes import router as intelligence_router
 app.include_router(intelligence_router)

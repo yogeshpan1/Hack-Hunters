@@ -108,7 +108,7 @@ COMPLETED and verified in this pass:
 - Read-only contextual assistant and expanded role-authorized global search.
 - Command Center cleanup, timetable updates, assessment reference view, reference hygiene and credential removal from current source.
 - Figma Command Center alignment, Registrar-only account creation, four-second startup, no dark mode, one-to-one faculty/module assignments, a local-only supplied Computing roster, and generated student planning data across every other programme/year.
-- The final full suite passed: 44 backend tests against real MongoDB, including protected timetable actions and sanitized database failures. The production frontend build passed. Starlette's test-client integration emits one dependency deprecation warning.
+- The final full suite passed: 48 backend tests against real MongoDB, including protected timetable actions and sanitized database failures. The production frontend build passed. Starlette's test-client integration emits one dependency deprecation warning.
 - Browser observations confirmed the authenticated Command Center's actual 83.3% health/one capacity issue, selecting the Friday 06:30 combined-group session, visible source/demo notes, and assistant context. Solver-to-publication is covered by API tests; do not claim every screen was manually tested at every breakpoint.
 
 PARTIAL / IN PROGRESS:
@@ -121,9 +121,9 @@ PARTIAL / IN PROGRESS:
 NOT YET IMPLEMENTED:
 
 - Full term/holiday recurrence, travel-time constraints, prediction, or a distributed optimization worker.
-- Exact examination scheduling editor, seating plans or invigilator optimization.
+- Named student seat assignments and globally optimized invigilator workload. Exam editing, draft generation and venue optimization are implemented.
 - CSV/spreadsheet mapping and student bulk editing.
-- A historical conflict-trend chart (revision data is stored).
+- Full term utilization history. Revision-based conflict history is displayed.
 - Live SMTP/email provider, LLM integration, SSO, real-time subscriptions, password recovery, rate limiting and production-hardening.
 - A hosted deployment. Docker Compose configuration is provided; the full stack has not been run in this pass.
 
@@ -140,3 +140,7 @@ Read README for full commands. Create the Python environment, install backend re
 Environment variable names only: `MONGODB_URI`, `MONGODB_DATABASE`, `JWT_SECRET`, `NEXUS_ADMIN_EMAIL`, `NEXUS_ADMIN_NAME`, `NEXUS_ADMIN_PASSWORD`, `NEXUS_LOAD_DEMO`, `EMAIL_PROVIDER`, `EMAIL_API_KEY`, `LLM_API_KEY`. Never put secret values here.
 
 The previous shared development password existed in historical commits. Current source removes it and requires local bootstrap configuration. Existing account passwords were not silently changed. Rotate previously shared credentials before exposing the app; do not rewrite repository history without explicit authorization. Raw reference files remain locally available even when removed from tracking. The unused legacy SQLite file remains local as a backup and is never read by the application.
+
+## Recording-based UI update
+
+UI Overview.mov was inspected using extracted frames. Sidebar collapse is bottom-right. Examinations now supports audited create/edit, plan preview/save, venue reassignment and seat-demand visualization. The first-fit planner handles primary cohorts, skips Saturdays, checks weekly teaching, and refuses incomplete saves. Optimization uses three real solver strategies; what-if stores actual incident metrics. Analytics uses current weekly occupancy and stored conflict snapshots, not fictitious term data. Faculty uses paginated workload bars and selected-person details. Removed Import and Users screens remain absent.

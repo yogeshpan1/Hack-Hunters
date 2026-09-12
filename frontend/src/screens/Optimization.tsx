@@ -1,21 +1,21 @@
 import {useEffect,useState} from "react";
-import {AlertTriangle,ArrowDownRight,ArrowRight,CheckCircle2,FlaskConical,LockKeyhole,Play,ShieldCheck,Waypoints} from "lucide-react";
+import {AlertTriangle,ArrowRight,CheckCircle2,Play,ShieldCheck,Waypoints} from "lucide-react";
 import {useApp} from "../context";
 import {api,errorText} from "../api";
 import {AskNexus,Badge,Button,Empty,ErrorNotice,Modal,PageHeader,Panel} from "../components/ui";
 import {DAYS,time,type Readiness,type Run} from "../types";
 
-type SolverOptions={whatif?:boolean;room?:number;day?:number;onStage:(label:string)=>void};
+type SolverOptions={strategy?:"balanced"|"rooms"|"faculty";whatif?:boolean;room?:number;day?:number;onStage:(label:string)=>void};
 
-async function streamOptimizer({whatif=false,room,day,onStage}:SolverOptions):Promise<Run>{
+async function streamOptimizer({strategy="balanced",whatif=false,room,day,onStage}:SolverOptions):Promise<Run>{
  const response=await fetch("/api/optimization/stream",{
   method:"POST",
   headers:{"Content-Type":"application/json",Authorization:"Bearer "+(sessionStorage.getItem("nexus-token")||"")},
-  body:JSON.stringify(whatif?{room_id:room,day}:{}),
+  body:JSON.stringify(whatif?{room_id:room,day,strategy}:{strategy}),
  });
  if(!response.ok){
   const payload=await response.json().catch(()=>({}));
-  throw new Error(payload.detail||"Calculation failed.");
+  throw new Error(typeof payload.detail==="string"?payload.detail:Array.isArray(payload.detail)?payload.detail.map((item:{msg:string})=>item.msg).join("; "):"Calculation failed.");
  }
  if(!response.body)throw new Error("No solver response received.");
 
@@ -61,7 +61,7 @@ type ResultReviewProps={
 };
 
 function ResultReview({run,busy,reason,setReason,onAction,compact=false}:ResultReviewProps){
- if(!run)return <Empty title={busy?"Evaluating your timetable…":"Ready when you are"} description={busy?"Checking constraints and searching for a feasible allocation. Results will appear here.":"Run a calculation to see real before-and-after metrics and proposed session changes."}/>;
+ if(!run)return <Empty title={busy?"Evaluating your timetableâ€¦":"Ready when you are"} description={busy?"Checking constraints and searching for a feasible allocation. Results will appear here.":"Run a calculation to see real before-and-after metrics and proposed session changes."}/>;
  const failed=["Infeasible","Timed out"].includes(run.status);
  const canDecide=["Review","Approved"].includes(run.status);
  return <div className={"result-content "+(compact?"compact-result":"")}>
@@ -84,9 +84,9 @@ function ResultReview({run,busy,reason,setReason,onAction,compact=false}:ResultR
    {run.changes.length?compact?
     <div className="drawer-change-list">{run.changes.map(change=><div className="drawer-change" key={change.id}>
      <strong>{change.code}</strong>
-     <span>{change.before.room} · {DAYS[change.before.day]} {time(change.before.start)}</span>
+     <span>{change.before.room} Â· {DAYS[change.before.day]} {time(change.before.start)}</span>
      <ArrowRight size={14}/>
-     <span>{change.after.room} · {DAYS[change.after.day]} {time(change.after.start)}</span>
+     <span>{change.after.room} Â· {DAYS[change.after.day]} {time(change.after.start)}</span>
     </div>)}</div>:
     <div className="table-wrap"><table><thead><tr><th>Session</th><th>Current allocation</th><th>Proposed allocation</th><th>Reason</th></tr></thead><tbody>
      {run.changes.map(change=><tr key={change.id}><td className="mono">{change.code}</td><td>{change.before.room}<small>{DAYS[change.before.day]} {time(change.before.start)}</small></td><td><span className="success-text">{change.after.room}</span><small>{DAYS[change.after.day]} {time(change.after.start)}</small></td><td className="reason-cell">{change.reason}</td></tr>)}
@@ -107,106 +107,52 @@ function ResultReview({run,busy,reason,setReason,onAction,compact=false}:ResultR
 }
 
 export default function Optimization({whatif=false}:{whatif?:boolean}){
- const {workspace,refresh,notify,can}=useApp();
- const [run,setRun]=useState<Run|null>(null);
- const [history,setHistory]=useState<Run[]>([]);
- const [busy,setBusy]=useState(false);
- const [error,setError]=useState("");
- const [room,setRoom]=useState(1);
- const [day,setDay]=useState(3);
- const [reason,setReason]=useState("");
- const [stages,setStages]=useState<string[]>([]);
- const [readiness,setReadiness]=useState<Readiness|null>(null);
-
- useEffect(()=>{
-  void api.get<Run[]>("/optimization").then(response=>setHistory(response.data)).catch(problem=>setError(errorText(problem)));
-  setRun(null);
- },[whatif]);
- useEffect(()=>{
-  void api.get<Readiness>("/readiness").then(response=>setReadiness(response.data)).catch(problem=>setError(errorText(problem)));
- },[workspace?.revision]);
- if(!workspace)return null;
- if(!can("Registrar"))return <Empty title="Registrar access required"/>;
- const affected=workspace.sessions.filter(session=>session.room_id===room&&session.day===day);
-
+ const {workspace:w,refresh,notify}=useApp();
+ const [candidates,setCandidates]=useState<(Run|null)[]>([null,null,null]),[selected,setSelected]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(""),[stages,setStages]=useState<string[]>([]),[reason,setReason]=useState(""),[review,setReview]=useState(false);
+ const [room,setRoom]=useState(0),[day,setDay]=useState(3),[readiness,setReadiness]=useState<Readiness|null>(null);
+ useEffect(()=>{void api.get<Readiness>("/readiness").then(r=>setReadiness(r.data)).catch(e=>setError(errorText(e)));},[w?.revision]);
+ if(!w)return null;
+ const roomId=room||w.rooms[0]?.id,affected=w.sessions.filter(s=>s.room_id===roomId&&s.day===day),run=candidates[selected];
  async function calculate(){
-  setBusy(true);setError("");setStages([]);setRun(null);
+  setBusy(true);setError("");setCandidates([null,null,null]);setStages([]);setSelected(0);setReason("");
   try{
-   const next=await streamOptimizer({whatif,room,day,onStage:label=>setStages(current=>[...current,label])});
-   setRun(next);
-   setHistory(current=>[next,...current]);
-  }catch(problem){setError(errorText(problem));}
-  finally{setBusy(false);}
+   const strategies=(whatif?["balanced"]:["balanced","rooms","faculty"]) as ("balanced"|"rooms"|"faculty")[];
+   for(let i=0;i<strategies.length;i++){
+    const result=await streamOptimizer({strategy:strategies[i],whatif,room:roomId,day,onStage:label=>setStages(current=>[...current,`${whatif?"Simulation":"Option "+String.fromCharCode(65+i)} · ${label}`])});
+    setCandidates(current=>current.map((value,index)=>index===i?result:value));
+   }
+  }catch(e){setError(errorText(e));}finally{setBusy(false);}
  }
  async function action(actionName:"approve"|"publish"|"discard"){
-  if(!run)return;
-  setBusy(true);setError("");
-  try{
-   const {data}=await api.post<Run>("/optimization/"+run.id+"/"+actionName,{reason});
-   setRun(data);
-   setHistory(current=>current.map(item=>item.id===data.id?data:item));
-   await refresh();
-   notify(actionName==="publish"?"Schedule published. Audit, notifications, and email drafts created.":"Run "+data.status.toLowerCase()+".");
-  }catch(problem){setError(errorText(problem));}
-  finally{setBusy(false);}
+  if(!run)return;setBusy(true);setError("");
+  try{const {data}=await api.post<Run>(`/optimization/${run.id}/${actionName}`,{reason});setCandidates(current=>current.map(r=>r?.id===data.id?data:r));await refresh();notify(`Run ${data.status.toLowerCase()}.`);}catch(e){setError(errorText(e));}finally{setBusy(false);}
  }
-
- return <div className={"optimization-page "+(whatif?"scenario-page":"")}>
-  <PageHeader
-   eyebrow={"INTELLIGENCE / "+(whatif?"SCENARIO PLANNING":"CONSTRAINT SOLVER")}
-   title={whatif?"What happens if…?":"Optimization Lab"}
-   subtitle={whatif?"Explore disruption safely. Compare the impact before making a change.":"Find a valid schedule. Understand every change before you approve it."}
-   actions={<Button variant="primary" disabled={busy||!readiness?.ready} onClick={()=>void calculate()}><Play size={15}/>{busy?"Calculating…":whatif?"Run simulation":"Run optimizer"}</Button>}
-  />
-  {whatif&&<div className="scenario-sentence">
-   <span>Room</span>
-   <select aria-label="Scenario room" value={room} onChange={event=>{setRoom(Number(event.target.value));setRun(null);}}>{workspace.rooms.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select>
-   <span>becomes unavailable on</span>
-   <select aria-label="Scenario day" value={day} onChange={event=>{setDay(Number(event.target.value));setRun(null);}}>{DAYS.map((label,index)=><option key={label} value={index}>{label}</option>)}</select>
-   <Badge tone="orange">{affected.length} sessions affected</Badge>
-  </div>}
-  {readiness&&<ReadinessPanel readiness={readiness}/>}
-  <div className="optimization-layout">
-   <Panel className="solver-panel">
-    <div className="solver-icon">{whatif?<Waypoints size={28}/>:<FlaskConical size={28}/>}</div>
-    <span className="eyebrow">{whatif?"A TEMPORARY SCENARIO":"GOOGLE OR-TOOLS · CP-SAT"}</span>
-    <h2>{whatif?"What if a room closes?":"A better allocation starts here."}</h2>
-    <p>{whatif?"Make a room unavailable for one day. NEXUS will calculate a feasible alternative timetable.":"Evaluate room capacity, lecturer availability, cohort overlaps, and fixed commitments together."}</p>
-    {whatif&&<div className="form-grid">
-     <label>Room<select value={room} onChange={event=>{setRoom(Number(event.target.value));setRun(null);}}>{workspace.rooms.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
-     <label>Unavailable on<select value={day} onChange={event=>{setDay(Number(event.target.value));setRun(null);}}>{DAYS.map((label,index)=><option value={index} key={label}>{label}</option>)}</select></label>
-    </div>}
-    <div className={"solver-matrix "+(busy?"calculating":"")} aria-label="Current timetable occupancy">
-     {Array.from({length:40},(_,index)=>{
-      const weekday=index%5,hour=9+Math.floor(index/5);
-      const count=workspace.sessions.filter(session=>session.day===weekday&&session.start<=hour&&session.start+session.duration>hour).length;
-      return <i key={index} className={count?"occupied density-"+Math.min(3,count):""} style={{animationDelay:String(index*45)+"ms"}}/>;
-     })}
-    </div>
-    <div className="solver-summary">
-     <div><strong>{whatif?affected.length:workspace.metrics.conflicts}</strong><span>{whatif?"Affected sessions":"Hard conflicts"}</span></div>
-     <div><strong>{workspace.sessions.filter(item=>item.locked).length}</strong><span>Locked sessions</span></div>
-     <div><strong>{workspace.rules.length}</strong><span>Scheduling rules</span></div>
-    </div>
-    <Button variant="primary" disabled={busy||!readiness?.ready} onClick={()=>void calculate()}><Play size={16}/>{busy?"Calculating alternatives…":whatif?"Simulate room closure":"Run optimizer"}<ArrowRight size={16}/></Button>
-    <p className="fine-print"><ShieldCheck size={14}/>Your published timetable stays unchanged until approval and publication.</p>
-    {busy&&<div className="solver-progress" role="status">{stages.map((label,index)=><div key={label} className="active"><span>{index<stages.length-1?<CheckCircle2 size={14}/>:String(index+1).padStart(2,"0")}</span>{label}</div>)}</div>}
-   </Panel>
-   <Panel className="constraints-summary">
-    <div className="section-heading"><h2>{whatif?"Impact preview":"Constraints in play"}</h2><LockKeyhole size={16}/></div>
-    {whatif?affected.length?affected.map(session=><div className="compact-row" key={session.id}><strong>{session.code}</strong><span>{session.faculty}<small>{session.cohort} · {time(session.start)}</small></span></div>):<Empty title="No sessions directly affected" description="The full timetable will still be checked."/>:workspace.rules.filter(rule=>rule.kind==="Hard").map(rule=><div className="rule-summary" key={rule.id}><ShieldCheck size={17}/><span>{rule.name}</span><Badge>HARD</Badge></div>)}
-    <div className="panel-note">{whatif?"Room closure is saved only when the scenario is published.":"No hard constraint can be switched off."}</div>
-   </Panel>
-  </div>
+ const runButton=<Button variant="primary" disabled={busy||!readiness?.ready} onClick={()=>void calculate()}><Play size={15}/>{busy?"Calculating…":whatif?"Run simulation":"Run optimizer"}</Button>;
+ const resetScenario=()=>{setCandidates([null,null,null]);setReason("");};
+ const comparison=[["Conflict-free sessions",...candidates.map(r=>r?.after.conflict_free??"—")],["Room utilization",...candidates.map(r=>r?.after.utilization??"—")],["Faculty within weekly target",...candidates.map(r=>r?.after.faculty_balance??"—")],["Hard conflicts",...candidates.map(r=>r?.after.conflicts??"—")],["Session changes",...candidates.map(r=>r?.changes.length??"—")]];
+ return <div className="recorded-planning">
+  <PageHeader eyebrow={whatif?"INTELLIGENCE · SIMULATION":"INTELLIGENCE · OPTIMIZATION"} title={whatif?"What happens if…?":"Optimization Lab"} subtitle={whatif?"Model a disruption, see what breaks, and review a resolution before you commit.":"Generate, compare and select a feasible schedule."} actions={!whatif&&runButton}/>
   {error&&<ErrorNotice message={error}/>}
-  <Panel className="results-panel">
-   <div className="section-heading"><div><span className="eyebrow">REVIEW / DECIDE / APPLY</span><h2>{run?"Run "+String(run.id).padStart(3,"0")+" · "+run.kind:"Your next allocation"}</h2></div>{run&&<Badge tone={run.status==="Published"?"green":run.status==="Review"?"blue":"orange"}>{run.status}</Badge>}</div>
-   <ResultReview run={run} busy={busy} reason={reason} setReason={setReason} onAction={action}/>
-  </Panel>
-  {history.length>0&&<Panel className="run-history">
-   <div className="section-heading"><h2>Recent calculations</h2><ArrowDownRight size={16}/></div>
-   {history.slice(0,5).map(item=><button className="history-row" key={item.id} onClick={()=>{setRun(item);setReason("");}}><span className="mono">RUN {item.id}</span><span>{item.kind}<small>{new Date(item.created_at).toLocaleString()}</small></span><span>{item.before.conflicts} → {item.after.conflicts} conflicts</span><Badge>{item.status}</Badge><ArrowRight size={14}/></button>)}
-  </Panel>}
+  {whatif?<>
+   <div className="scenario-sentence"><span>Simulate: Room</span><select aria-label="Scenario room" disabled={busy} value={roomId} onChange={e=>{setRoom(Number(e.target.value));resetScenario();}}>{w.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select><span>becomes unavailable on</span><select aria-label="Scenario day" disabled={busy} value={day} onChange={e=>{setDay(Number(e.target.value));resetScenario();}}>{DAYS.map((d,i)=><option key={d} value={i}>{d}</option>)}</select>{runButton}</div>
+   <div className="recorded-kpis three">{[["Affected sessions",affected.length],["Affected cohorts",new Set(affected.flatMap(s=>s.cohort_ids)).size],["Affected faculty",new Set(affected.map(s=>s.faculty_id)).size]].map(([label,value])=><Panel key={label}><span className="eyebrow">{label}</span><strong>{value}</strong></Panel>)}</div>
+   <div className="scenario-columns">{["Before","After incident","After optimization"].map((label,i)=>{
+    const ready=i===0||!!run,success=run&&["Review","Approved","Published"].includes(run.status);
+    const value=i===0?w.metrics.conflicts:i===1?run?.incident?.conflicts??null:success?run.after.conflicts:null;
+    const use=i===0?w.metrics.utilization:i===1?run?.incident?.utilization??null:success?run.after.utilization:null;
+    return <Panel key={label} className={i===1?"incident-card":i===2?"resolved-card":""}><h3><i/>{label}</h3><p className="fine-print">{i===0?"Current committed schedule":i===1?`${w.rooms.find(r=>r.id===roomId)?.name} closed · ${DAYS[day]}`:"NEXUS proposed resolution"}</p><div className="scenario-metric"><span>Conflicts</span><strong>{ready?value??"—":"—"}</strong></div><div className="conflict-ticks">{Array.from({length:8},(_,k)=><i key={k} className={ready&&value&&k<value?"filled":""}/>)}</div><div className="scenario-metric"><span>Room utilization</span><b>{ready&&use!==null?`${use}%`:"—"}</b></div><div className="meter teal"><span style={{width:`${ready?use||0:0}%`}}/></div><p className="scenario-note">{i===0?"Baseline operating state across Islington College.":i===1?"Each affected session needs an alternative room or time.":run?run.explanation:"Run the simulation to calculate an alternative."}</p></Panel>;
+   })}</div>
+   {busy&&<Panel className="planning-progress">{stages.at(-1)||"Preparing simulation…"}</Panel>}
+   {run&&<Panel className="scenario-proposals"><div className="section-heading"><h2>Proposed movements</h2><Badge>{run.status}</Badge></div><ResultReview compact run={run} busy={busy} reason={reason} setReason={setReason} onAction={action}/></Panel>}
+  </>:<div className="candidate-layout">
+   <Panel className="candidate-engine"><h3><span className="live-dot"/>Constraint Solver</h3><p className="fine-print">Candidate generation · live calculation</p><div className={"solver-matrix "+(busy?"calculating":"")}>{Array.from({length:56},(_,i)=><i key={i} className={w.sessions.some(s=>s.day===i%6&&s.start<=6.5+Math.floor(i/6)&&s.start+s.duration>6.5+Math.floor(i/6))?"occupied density-2":""}/>)}</div><div className="engine-kpis">{[["Sessions",w.sessions.length],["Hard constraints",w.rules.filter(r=>r.kind==="Hard").length],["Soft constraints",w.rules.filter(r=>r.kind==="Soft").length],["Feasible candidates",candidates.filter(r=>r&&["Review","Approved","Published"].includes(r.status)).length]].map(([label,value])=><div key={label}><strong>{value}</strong><span>{label}</span></div>)}</div><div className="engine-stages" role="status">{stages.length?stages.slice(-8).map((label,i)=><p key={i}><CheckCircle2 size={14}/>{label}</p>):<p>Ready to test balanced, room-fit and faculty-day priorities.</p>}</div>{readiness&&!readiness.ready&&<ReadinessPanel readiness={readiness}/>}</Panel>
+   <div className="candidate-results">{!candidates.some(Boolean)?<Panel className="candidate-empty"><Waypoints size={36}/><h3>{busy?"Evaluating candidate schedules…":"Candidate schedules appear here"}</h3><p>Run the optimizer to compare three scheduling priorities.<br/>Every candidate is independently checked against hard constraints.</p></Panel>:<>
+    <div className="candidate-cards">{["Balanced allocation","Best room fit","Balanced faculty days"].map((label,i)=><button className={"panel candidate-card "+(selected===i?"selected":"")} key={label} disabled={!candidates[i]||busy} onClick={()=>{setSelected(i);setReason("");}}><span className="eyebrow">Option {String.fromCharCode(65+i)}</span><h3>{label}</h3><strong>{candidates[i]?.after.health??"—"}<small>/100</small></strong><div className="meter teal"><span style={{width:`${candidates[i]?.after.health||0}%`}}/></div><Badge tone={selected===i?"blue":"neutral"}>{candidates[i]?.status||"Waiting"}{selected===i&&candidates[i]?" · Selected":""}</Badge></button>)}</div>
+    <Panel className="comparison-matrix"><div className="section-heading"><h2>Comparison Matrix</h2><Badge>Calculated metrics</Badge></div><div className="table-wrap"><table><thead><tr><th>Metric</th>{["A","B","C"].map(x=><th key={x}>Option {x}</th>)}</tr></thead><tbody>{comparison.map(row=><tr key={row[0]}><td>{row[0]}</td>{row.slice(1).map((value,i)=><td key={i} className={i===selected?"matrix-selected":""}>{value}</td>)}</tr>)}</tbody></table></div><p className="panel-note">Different priorities may produce the same allocation. Score shows the percentage of conflict-free sessions.</p><div className="candidate-actions"><span>Option {String.fromCharCode(65+selected)} selected</span><Button disabled={!run||busy} onClick={()=>setReview(true)}>Preview & approve<ArrowRight size={14}/></Button></div></Panel>
+   </>}</div>
+  </div>}
+  {whatif&&readiness&&!readiness.ready&&<ReadinessPanel readiness={readiness}/>}
+  {review&&<Modal wide title={`Option ${String.fromCharCode(65+selected)} · Review schedule`} onClose={()=>setReview(false)}><div className="modal-body"><ResultReview run={run} busy={busy} reason={reason} setReason={setReason} onAction={action}/>{error&&<ErrorNotice message={error}/>}</div></Modal>}
  </div>;
 }
 
@@ -255,7 +201,7 @@ export function OptimizationDrawer({onClose}:{onClose:()=>void}){
     <div><strong>{workspace.rules.length}</strong><span>Rules in force</span></div>
    </div>
    {readiness&&<ReadinessPanel readiness={readiness}/>}
-   <Button variant="primary" disabled={busy||!readiness?.ready} onClick={()=>void calculate()}><Play size={16}/>{busy?"Calculating alternatives…":"Run conflict resolution"}</Button>
+   <Button variant="primary" disabled={busy||!readiness?.ready} onClick={()=>void calculate()}><Play size={16}/>{busy?"Calculating alternativesâ€¦":"Run conflict resolution"}</Button>
    {busy&&<div className="solver-progress drawer-progress" role="status">{stages.map((label,index)=><div key={label} className="active"><span>{index<stages.length-1?<CheckCircle2 size={14}/>:String(index+1).padStart(2,"0")}</span>{label}</div>)}</div>}
    {error&&<ErrorNotice message={error}/>}
    {run&&<ResultReview compact run={run} busy={busy} reason={reason} setReason={setReason} onAction={action}/>}

@@ -171,6 +171,8 @@ class OptimizationRun(Document):
     kind: str = "optimization"
     revision: int
     before: dict
+    incident: dict = Field(default_factory=dict)
+    strategy: str = 'balanced'
     after: dict
     assignments: list
     changes: list
