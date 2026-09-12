@@ -1,4 +1,3 @@
-fastapi
-uvicorn
-pydantic
+groq
+python-dotenv
 mysql-connector-python
