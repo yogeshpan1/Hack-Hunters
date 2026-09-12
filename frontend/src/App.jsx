@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import "./App.css";
 import Chatbot from "../component/Chatbot";
@@ -394,9 +393,7 @@ function App() {
       </div>
 
     </div>
-    
   );
 }
 
 export default App;
-
