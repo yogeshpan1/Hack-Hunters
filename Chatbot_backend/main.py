@@ -1,24 +1,101 @@
 import os
 import json
 import re
+from pathlib import Path
+from typing import Literal
 
 import mysql.connector
+import resend
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from groq import Groq
 
 
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+# Resend provides this sender for initial testing. A verified custom domain is
+# required before sending from an organisation address.
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY is missing from .env")
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-
-
-groq_client = Groq(
-    api_key=GROQ_API_KEY
+app = FastAPI(title="Nexus AI API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+
+
+class EmailRequest(BaseModel):
+    to: str
+    subject: str
+    message: str
+
+
+@app.get("/")
+def nexus_ui():
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
+
+
+@app.get("/api/status")
+def api_status():
+    return {
+        "service": "Nexus AI API",
+        "status": "running",
+        "docs": "/docs",
+        "endpoints": ["/api/chat", "/api/email"],
+    }
+
+
+@app.post("/api/chat")
+def api_chat(request: ChatRequest):
+    if not GROQ_API_KEY or groq_client is None:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY is not configured.")
+    if not request.messages or request.messages[-1].role != "user":
+        raise HTTPException(status_code=400, detail="Send a user message to Nexus AI.")
+    try:
+        question = request.messages[-1].content.strip()
+        if not question:
+            raise HTTPException(status_code=400, detail="Message cannot be empty.")
+        # dict() keeps this compatible with both Pydantic v1 and v2.
+        history = [message.dict() for message in request.messages[:-1]]
+        return {"message": chat(question, history)}
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
+
+
+@app.post("/api/email")
+def send_email(request: EmailRequest):
+    """Send an email through Resend without exposing credentials to the browser."""
+    if not RESEND_API_KEY:
+        raise HTTPException(status_code=500, detail="Set RESEND_API_KEY in the backend .env file.")
+    if not request.to.strip() or not request.subject.strip() or not request.message.strip():
+        raise HTTPException(status_code=400, detail="Recipient, subject, and message are required.")
+    try:
+        resend.api_key = RESEND_API_KEY
+        result = resend.Emails.send({"from": RESEND_FROM_EMAIL, "to": [request.to.strip()], "subject": request.subject.strip(), "text": request.message.strip()})
+        return {"message": "Email sent successfully.", "id": result.get("id")}
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"Resend could not send the email: {error}") from error
 
 MODEL = "openai/gpt-oss-120b"
 
@@ -171,6 +248,9 @@ exam_seats.room_id
 
 
 def generate_sql(user_question, conversation_history):
+
+    if groq_client is None:
+        raise RuntimeError("GROQ_API_KEY is missing from .env")
 
     history_text = ""
 
@@ -655,6 +735,9 @@ def generate_answer(
     database_results,
     conversation_history
 ):
+
+    if groq_client is None:
+        raise RuntimeError("GROQ_API_KEY is missing from .env")
 
     prompt = f"""
 You are the official AI Assistant for the RTE
