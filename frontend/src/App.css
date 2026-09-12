@@ -1,16 +1,4 @@
 .app {
-<<<<<<< HEAD
-  min-height: 100vh;
-  background: #111827;
-  color: white;
-  padding: 40px 20px;
-  box-sizing: border-box;
-}
-
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-=======
   --nx-bg: #0b0d14;
   --nx-panel: #12141c;
   --nx-panel-alt: #171a25;
@@ -306,7 +294,6 @@
   padding: 22px 24px;
   flex: 1;
   min-width: 0;
->>>>>>> Clash-API
 }
 
 h1 {
@@ -438,8 +425,6 @@ h1 {
 .class-info p {
   margin: 7px 0;
   color: #d1d5db;
-<<<<<<< HEAD
-=======
 }
 
 
@@ -1344,5 +1329,4 @@ h1 {
   .detail-panel {
     position: static;
   }
->>>>>>> Clash-API
 }
