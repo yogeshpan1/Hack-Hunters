@@ -1,0 +1,34 @@
+services:
+  mongodb:
+    image: mongo:8.0.32
+    command: ["mongod", "--replSet", "nexus-rs", "--bind_ip_all"]
+    volumes:
+      - nexus_mongodb:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'try { rs.status() } catch (e) { rs.initiate({_id: \"nexus-rs\", members: [{_id: 0, host: \"mongodb:27017\"}]}) }; if (!db.hello().isWritablePrimary) quit(1)'"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+  backend:
+    build: ./backend
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/?replicaSet=nexus-rs
+      MONGODB_DATABASE: nexus
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      NEXUS_ADMIN_EMAIL: ${NEXUS_ADMIN_EMAIL:-admin@nexus.demo}
+      NEXUS_ADMIN_NAME: ${NEXUS_ADMIN_NAME:-NEXUS Administrator}
+      NEXUS_ADMIN_PASSWORD: ${NEXUS_ADMIN_PASSWORD:?Set NEXUS_ADMIN_PASSWORD in .env}
+      NEXUS_LOAD_DEMO: ${NEXUS_LOAD_DEMO:-true}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      - backend
+volumes:
+  nexus_mongodb:
