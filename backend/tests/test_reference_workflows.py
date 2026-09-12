@@ -65,23 +65,6 @@ def test_half_hour_overlap_and_combined_cohort_detection(db):
     assert any(c['kind']=='Cohort overlap' and set(c['session_ids'])=={6,8} for c in conflicts(snapshot(db)))
 
 
-def test_invalid_timetable_import_does_not_write(client):
-    sign_in(client,'admin')
-    before=len(client.get('/api/timetable').json())
-    result=client.post('/api/import',json={'entity':'sessions','rows':[{'module_id':1,'room_id':1,'day':5,'start':6.25,'duration':1}],'confirm':True})
-    assert not result.json()['valid']
-    assert len(client.get('/api/timetable').json())==before
-
-
-def test_timetable_import_persists_detected_conflicts(client,database):
-    sign_in(client,'admin')
-    row={'module_id':1,'room_id':1,'day':5,'start':6.5,'duration':1.5,'cohort_ids':[1],'session_type':'Lab'}
-    assert client.post('/api/import',json={'entity':'sessions','rows':[row]}).json()['valid']
-    assert client.post('/api/import',json={'entity':'sessions','rows':[row],'confirm':True}).json()['imported']
-    revision=client.get('/api/workspace').json()['revision']
-    assert database.conflicts.count_documents({'revision':revision})>0
-
-
 def test_assistant_accommodate_and_restricted_search(client):
     sign_in(client,'registrar')
     response=client.post('/api/assistant',json={'query':'Which room can accommodate 45 students?'}).json()

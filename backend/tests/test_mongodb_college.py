@@ -92,4 +92,7 @@ def test_catalogue_does_not_mix_career_examples_with_modules():
     for p in catalog['programmes'][15:]:
         assert len(p['curriculum'])==7
         assert p['curriculum'][-1]['name']=='MSc Project'
-    assert all(c['code'] is None for p in catalog['programmes'][9:] for c in p['curriculum'])
+    # CC7008 is the one public London Met catalogue code verified for the
+    # Islington MSc Cyber Threat Intelligence pathway; the remaining PG
+    # brochure entries still have no published code.
+    assert [c['code'] for p in catalog['programmes'][9:] for c in p['curriculum'] if c['code']] == ['CC7008']

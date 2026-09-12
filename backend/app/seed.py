@@ -13,11 +13,12 @@ CATALOG_PATH = Path(__file__).resolve().parents[1] / 'data' / 'college_catalog.j
 
 def seed(db):
     from .reference_seed import load_reference_demo
-    from .demo_expansion import migrate_registrar, expand_college_demo
+    from .demo_expansion import migrate_registrar, expand_college_demo, refresh_academic_demo
     if db.first(User):
         migrate_registrar(db)
         load_reference_demo(db)
         expand_college_demo(db)
+        refresh_academic_demo(db)
         return
     catalog=json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
     for record in catalog['programmes']: db.add(Programme(**record))
@@ -37,3 +38,4 @@ def seed(db):
     db.commit()
     load_reference_demo(db)
     expand_college_demo(db)
+    refresh_academic_demo(db)

@@ -26,7 +26,7 @@ def serialize(obj):
 
 def snapshot(db):
     data={key:[serialize(x) for x in db.find(model)] for key,model in [("rooms",Room),("faculty",Faculty),("cohorts",Cohort),("modules",Module),("sessions",TimetableSession),("rules",Rule)]}
-    enrolled=Counter([x.cohort_id for x in db.find(Student,{"status":"Active"})])
+    enrolled=Counter(db.count_by(Student,"cohort_id",{"status":"Active"}))
     for cohort in data["cohorts"]:
         cohort["size"]=max(cohort["size"],enrolled[cohort["id"]])
     return data
@@ -108,7 +108,7 @@ def solve(data,scenario=None,progress=None):
         used=model.NewBoolVar(f"cohort_day_{key}"); model.AddMaxEquality(used,values); costs.append(weights.get("Compact cohort days",1)*used)
     for key,values in faculty_day.items():
         excess=model.NewIntVar(0,200,f"excess_{key}"); model.Add(excess>=sum(values)-8); costs.append(weights.get("Balance faculty days",2)*excess)
-    model.Minimize(sum(costs)); solver=cp_model.CpSolver(); solver.parameters.max_time_in_seconds=12; solver.parameters.num_search_workers=1; solver.parameters.random_seed=42
+    model.Minimize(sum(costs)); solver=cp_model.CpSolver(); solver.parameters.max_time_in_seconds=6; solver.parameters.num_search_workers=1; solver.parameters.random_seed=42
     progress("search","Testing alternatives with CP-SAT")
     status=solver.Solve(model)
     progress("validation","Independently checking solver output")

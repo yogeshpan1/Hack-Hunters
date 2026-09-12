@@ -25,7 +25,7 @@ Email addresses follow the convention explicitly supplied by the user: first nam
 
 `FAC001`-style values are generated application identifiers, not college-issued staff IDs. `Computing` is inferred only for faculty who appear in a Computing/AI routine. Other departments remain `Unconfirmed`. The 18-hour workload limit is a prototype policy, not a contractual or source-supplied limit. An empty unavailability list means restrictions have not been supplied; it does not certify that a teacher is available all week.
 
-Do not treat the user-supplied name list as an independently verified employment register. There is no student roster in the assets, and no student identities or teacher login accounts are generated from it.
+Do not treat the user-supplied name list as an independently verified employment register. Faculty source rows do not create teacher login accounts. The private student roster follows the local-only handling described below.
 
 ## Routine profiles and source issues
 
@@ -79,11 +79,13 @@ Some examination durations are supplied: Network Operating Systems progress test
 
 ## Curriculum caveats
 
-MBA final-semester routes are alternatives, represented with an optional-group label, rather than simultaneous required modules. PG module codes remain null. Published credit values are retained as printed; apparent credit inconsistencies, particularly in the MBA Events and Tourism final-semester table, need programme-administrator confirmation before a credit audit. The programme catalogue should not be mistaken for a current module delivery plan.
+MBA final-semester routes are alternatives, represented with an optional-group label, rather than simultaneous required modules. The brochure does not print PG module codes. CC7008 is verified from the London Metropolitan University 2026/27 Module Catalogue for Advanced Ethical Hacking and Security Compliance in the MSc IT and Applied Security — Cyber Threat Intelligence pathway. The remaining PG codes stay explicitly unconfirmed because no public London Met catalogue match was found for their brochure titles. Published credit values are retained as printed; apparent credit inconsistencies, particularly in the MBA Events and Tourism final-semester table, need programme-administrator confirmation before a credit audit. The programme catalogue should not be mistaken for a current module delivery plan.
 
 ## Student planning overlay
 
-`Student Details.pdf` is a seven-page, Autumn 2024–25 BSc (Hons) Computing roster with 276 student rows. It is a local, private reference only: names, university IDs and College IDs are neither committed nor loaded into MongoDB. The demonstration uses that verified headcount for the BSc Computing Year 1 planning cohort and creates non-identifying synthetic student records. Other UG and PG programme/year cohorts use generated planning counts. Every generated record is labelled in its source, status and notes fields. Curriculum entries remain brochure-derived; the one-to-one lecturer/module allocation is a demo planning assignment and requires confirmation before operational use.
+`Student Details.pdf` is a seven-page, Autumn 2024–25 BSc (Hons) Computing roster with 276 student rows. The PDF is ignored by Git and is never copied into source, JSON, logs or the remote repository. On the authorised local machine only, startup reads its 276 validated rows into the local MongoDB C1 cohort, with a local, non-deliverable NEXUS email placeholder for each record. The source PDF is absent from every deployment artifact; an online deployment must provision an approved roster through its own protected data process.
+
+All other UG and PG programme/year cohorts use generated, authentic-looking Nepalese planning names. Generated records are explicitly labelled in their source, status and notes fields. Curriculum entries remain brochure-derived; the one-to-one lecturer/module allocation is a demo planning assignment and requires confirmation before operational use.
 
 ## Rebuilding and verification
 

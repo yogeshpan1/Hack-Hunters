@@ -1972,7 +1972,7 @@
           "optional_group": null
         },
         {
-          "code": null,
+          "code": "CC7008",
           "name": "Advanced Ethical Hacking and Security Compliance",
           "semester": 3,
           "credits": 20,

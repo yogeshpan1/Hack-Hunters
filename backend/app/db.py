@@ -96,6 +96,17 @@ class MongoSession:
         rows=self.find(model,query,limit=1)
         return rows[0] if rows else None
 
+    def count_by(self, model, field, query=None):
+        pipeline = [
+            {"$match": query or {}},
+            {"$group": {"_id": f"${field}", "count": {"$sum": 1}}},
+        ]
+        return {
+            row["_id"]: row["count"]
+            for row in self.database[model.collection].aggregate(pipeline, session=self._transaction())
+            if row["_id"] is not None
+        }
+
     def add(self, obj):
         collection=obj.collection
         if obj.id is None:

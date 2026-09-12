@@ -17,7 +17,7 @@ powershell -ExecutionPolicy Bypass -File scripts/setup-mongodb.ps1
 powershell -ExecutionPolicy Bypass -File scripts/start-nexus.ps1
 ```
 
-The configuration command asks for the initial administrator credentials using hidden password input and writes only to ignored `.env`. There is **no hard-coded default password**. Existing database accounts are preserved and are not changed by re-running setup. Existing users can change their password through the administrator's Users & Roles editor.
+The configuration command asks for the initial administrator credentials using hidden password input and writes only to ignored `.env`. There is **no hard-coded default password**. Existing database accounts are preserved and are not changed by re-running setup. A Registrar can add another Registrar through the protected account API; there is no public registration.
 
 Open http://127.0.0.1:5173. API docs: http://127.0.0.1:8000/docs. Later launches only need `scripts/start-nexus.ps1`. After backend code changes use `scripts/restart-nexus.ps1`; it verifies the process belongs to this project's virtual environment before stopping it. Servers run in hidden windows; logs are in `%LOCALAPPDATA%\Nexus\logs`.
 
@@ -57,7 +57,7 @@ The application runs from versioned structured JSON in `backend/data`; raw refer
 
 On a workspace with no operational faculty, modules, cohorts or timetable, startup loads the coherent Autumn 2026 AI1 reference profile: six sessions, six named groups, three modules. **Thirty students per group is a demonstration assumption.** One 180-person combined lecture is intentionally moved from its reference hall to the 100-seat LT-05 to create a labelled capacity disruption. A workshop is locked to demonstrate preservation of fixed allocations. This does not claim the original college routine has an error.
 
-Seeding is transactional, audited, and idempotent. Existing operational edits prevent automatic demo loading. Set `NEXUS_LOAD_DEMO=false` before first startup for an empty planning workspace. No fake student roster or teacher login accounts are created in the live demo. Populated fictional test fixtures exist only under `backend/tests` and use generated ephemeral passwords.
+Seeding is transactional, audited, and idempotent. Existing operational edits prevent automatic demo loading. Set `NEXUS_LOAD_DEMO=false` before first startup for an empty planning workspace. If the ignored, user-supplied `Student Details.pdf` is present locally, its validated 276-row Computing roster is loaded only into that local MongoDB database; the PDF and its raw identifiers are never committed. Other programme cohorts use labelled generated planning profiles. Teacher source records do not create login accounts. Populated fictional test fixtures exist only under `backend/tests` and use generated ephemeral passwords.
 
 See [data provenance](docs/DATA_PROVENANCE.md) for source rows, programme code differences, unresolved lecturer names, inferred emails, and assessment limitations. To regenerate extraction artifacts when the local references change:
 
@@ -86,7 +86,7 @@ The interface follows the supplied Figma hierarchy: a health KPI strip, Schedule
 
 The only role available when creating an internal account is Registrar. Existing legacy `Super Admin` accounts migrate to Registrar on startup, so the original administrator remains usable. The last active Registrar cannot be removed, and a Registrar cannot disable their own account. Public registration is not implemented.
 
-Supported management includes rooms, faculty, programmes, teaching modules, cohorts, students, and internal users. JSON import provides upload/edit, validation, structured row preview and confirmation for rooms, faculty, programmes, cohorts, modules, students and timetable sessions. Invalid fields/references do not enter the database. Imported timetable clashes are retained as visible, persisted conflicts for review. Global search covers academic records and role-authorized student, exam and audit data.
+Supported management includes rooms, faculty, programmes, teaching modules, cohorts and students. Global search covers academic records and role-authorized student, exam and audit data. Bulk record ingestion and the separate account-management screen were removed from the working interface to keep the hackathon workflow focused.
 
 ## Architecture and scheduling
 
@@ -98,7 +98,7 @@ Integer document IDs preserve API compatibility. Collections represent independe
 
 Days retain Monday=0 through Friday=4, with Sunday=5. The UI displays Sunday first. Public times use half-hour numeric values; CP-SAT uses integer half-hour ticks over 06:30–17:00. Hard constraints cover room/faculty/combined-cohort overlap, room/PC capacity, type/equipment, availability, teaching hours and locks. Legacy integer availability entries reserve a full hour; `.5` entries reserve half an hour.
 
-Soft weights minimize disruption, discourage first periods, compact cohort teaching days, and reduce daily faculty overload. Weekly teaching totals do not change merely through rescheduling. Room type stays a hard requirement. The solver uses one worker, a fixed seed and a 12-second limit, distinguishing feasible/optimal, infeasible, and timeout results.
+Soft weights minimize disruption, discourage first periods, compact cohort teaching days, and reduce daily faculty overload. Weekly teaching totals do not change merely through rescheduling. Room type stays a hard requirement. The solver uses one worker, a fixed seed and a six-second limit, distinguishing feasible/optimal, infeasible, and timeout results.
 
 Academic mutations persist conflict records and revision snapshots in the same transaction. Publication atomically updates allocations, room closures, audit, notifications and email drafts. Compare-and-swap revision checks reject stale proposals. The assistant never mutates live data; room-only suggestions are independently checked, and ambiguous room context asks for a session rather than guessing.
 
@@ -113,7 +113,7 @@ Configure `.env` locally, then run `docker compose up --build`. Compose runs Mon
 npm --prefix frontend run build
 ```
 
-The test suite runs against isolated databases on real MongoDB. Coverage includes authentication, Registrar-only account creation, normalized email sign-in, management and import validation, transactional rollback, stale revisions, combined-cohort overlaps, half-hour sessions, PC capacity, locked sessions, infeasibility, what-if, streaming progress, source-demo bootstrap, publication, persisted conflict history, audit, notifications, demo email drafts, protected timetable actions, and sanitized database failures. The production frontend build also passes. A dependency deprecation warning remains in Starlette's test-client integration.
+The test suite runs against isolated databases on real MongoDB. Coverage includes authentication, Registrar-only account creation, normalized email sign-in, management validation, transactional rollback, stale revisions, combined-cohort overlaps, half-hour sessions, PC capacity, locked sessions, infeasibility, what-if, streaming progress, source-demo bootstrap, publication, persisted conflict history, audit, notifications, demo email drafts, protected timetable actions, and sanitized database failures. The production frontend build also passes. A dependency deprecation warning remains in Starlette's test-client integration.
 
 Known boundaries: weekly recurrence only, no full academic calendar/holiday engine; exact exam scheduling and seating/invigilator optimization are not implemented; exam allocations remain read-only. Assessment references do not substitute for confirmed schedules. Student bulk editing and CSV column-mapping are not available. Some lists use bounded result sets/client filtering rather than server pagination. Conflict history is stored but a historical trend chart is not yet exposed. No external LLM, email delivery, SSO, prediction engine, password recovery, login rate limiting or distributed solver worker is included. Production authentication and database hardening remain deployment work.
 

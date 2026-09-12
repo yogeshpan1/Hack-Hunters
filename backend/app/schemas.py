@@ -133,8 +133,3 @@ class EmailInput(Strict):
     body: str=Field(min_length=1,max_length=10000)
     action: Literal["draft","send","schedule"]="draft"
     scheduled_at: str | None=None
-
-class ImportInput(Strict):
-    entity: Literal["rooms","faculty","programmes","cohorts","modules","students","sessions"]
-    rows: list[dict]=Field(min_length=1,max_length=500)
-    confirm: bool=False

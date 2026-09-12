@@ -1,9 +1,9 @@
 """Build the clearly labelled academic demonstration overlay.
 
-The supplied student PDF is a private source roster. It is not copied into the
-repository or the database: it contributes only its verified headcount (276).
-All student records created here are synthetic, have non-identifying codes, and
-are safe to use in a public hackathon demo.
+The supplied student PDF stays private and is never copied into the repository.
+When it is present on the authorised local machine, the user-requested roster is
+loaded into the local MongoDB database. Deployments without the private file use
+synthetic profiles and must not expose the local roster.
 """
 import json
 import os
@@ -13,10 +13,55 @@ from pathlib import Path
 
 from . import models as m
 from .services import audit, bump
+from .student_roster import load_private_student_roster
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "college_catalog.json"
 SOURCE_ROSTER_COUNT = 276
 SOURCE_ACADEMIC_YEAR = "2024/25"
+DEMO_REFRESH_VERSION = "2026-09-12"
+
+_GIVEN_NAMES = (
+    "Aarav", "Aaryan", "Aastha", "Aayush", "Abhaya", "Abhishek", "Aditya",
+    "Aisha", "Alisha", "Aman", "Amisha", "Anish", "Anisha", "Anmol",
+    "Anusha", "Arjun", "Arya", "Ashish", "Asmita", "Avinash", "Ayush",
+    "Bibhuti", "Bikash", "Bina", "Binod", "Bishal", "Deepa", "Dipesh",
+    "Gaurav", "Hema", "Ishaan", "Kiran", "Kriti", "Manish", "Nabin",
+    "Nisha", "Prabin", "Pratiksha", "Rachana", "Rohan", "Sabin", "Sushma",
+)
+_FAMILY_NAMES = (
+    "Adhikari", "Acharya", "Bajracharya", "Basnet", "Bhandari", "Bhattarai",
+    "Bista", "Bohara", "Chaudhary", "Dahal", "Dangol", "Gautam", "Ghimire",
+    "Gurung", "Joshi", "Kafle", "Karki", "KC", "Khanal", "Khadka", "Lama",
+    "Magar", "Maharjan", "Manandhar", "Nepal", "Poudel", "Rai", "Rana",
+    "Regmi", "Sah", "Shakya", "Sharma", "Sherpa", "Shrestha", "Subedi",
+    "Tamang", "Thapa", "Upreti", "Yadav", "Yonjan",
+)
+
+
+def _cohort_name(programme_id, year):
+    if programme_id == 1:
+        return f"C{year}"
+    if programme_id == 2:
+        # AI1–AI6 are retained from the supplied Level 6 routine.
+        return f"AI{year + 6}"
+    if programme_id == 3:
+        return f"NT{year}"
+    if programme_id == 4:
+        return f"MT{year}"
+    if programme_id in {5, 6, 7, 8}:
+        return f"B{(programme_id - 5) * 3 + year}"
+    if programme_id == 9:
+        return f"AF{year}"
+    postgraduate_prefixes = {
+        10: "MBA-IB", 11: "MBA-PM", 12: "MBA-AM", 13: "MBA-DM",
+        14: "MBA-ET", 15: "MBA-CS", 16: "MSc-DA", 17: "MSc-AI",
+        18: "MSc-SE", 19: "MSc-DO", 20: "MSc-CTI",
+    }
+    return f"{postgraduate_prefixes[programme_id]}{year}"
+
+
+def _synthetic_student_name(index):
+    return f"{_GIVEN_NAMES[index % len(_GIVEN_NAMES)]} {_FAMILY_NAMES[(index // len(_GIVEN_NAMES)) % len(_FAMILY_NAMES)]}"
 
 
 def _slug(value):
@@ -52,13 +97,13 @@ def expand_college_demo(db):
     if not programmes or not faculty:
         return False
 
-    # One cohort per programme/year models every supplied curriculum level. The
-    # existing AI groups remain intact because their names do not use this prefix.
+    # One named planning cohort per programme/year models every supplied
+    # curriculum level using the local group conventions (C, AI, B, NT, etc.).
     cohorts_by_offering = {}
     for programme in catalog["programmes"]:
         pid = programme["id"]
         for year in sorted({entry.get("year", entry.get("semester", 1)) for entry in programme["curriculum"]}):
-            name = f"P{pid}-Y{year}"
+            name = _cohort_name(pid, year)
             cohort = db.first(m.Cohort, {"name": name})
             if cohort is None:
                 source_count = SOURCE_ROSTER_COUNT if pid == 1 and year == 1 else 24
@@ -73,7 +118,8 @@ def expand_college_demo(db):
                     source="Student Details.pdf" if pid == 1 and year == 1 else "Generated demonstration planning cohort",
                     data_status="Generated / source count" if pid == 1 and year == 1 else "Generated demonstration data",
                     notes=(
-                        "Headcount derived from the supplied private Computing roster; names and IDs are deliberately not imported."
+                        "Headcount derived from the supplied private Computing roster. "
+                        "A local-only refresh can synchronize the authorised roster into MongoDB."
                         if pid == 1 and year == 1 else
                         "Generated planning cohort; enrolment is not a college source fact."
                     ),
@@ -153,8 +199,8 @@ def expand_college_demo(db):
         ))
         created_modules += 1
 
-    # Generate non-identifying student records. The original roster never leaves
-    # the local reference folder; even the 276-count cohort gets synthetic names.
+    # Start with authentic-looking synthetic profiles. A separate local-only
+    # refresh replaces the C1 profiles with the supplied roster when available.
     students_created = 0
     for (pid, year), cohort in cohorts_by_offering.items():
         count = SOURCE_ROSTER_COUNT if pid == 1 and year == 1 else 24
@@ -163,8 +209,8 @@ def expand_college_demo(db):
             code = f"{prefix}-{number:03d}"
             db.add(m.Student(
                 code=code,
-                name=f"Student {number:03d}",
-                email=f"student{number:03d}.p{pid}y{year}@demo.nexus.local",
+                name=_synthetic_student_name(students_created),
+                email=f"{code.lower()}@nexus.local",
                 cohort_id=cohort.id,
                 status="Active",
                 source="Student Details.pdf headcount" if pid == 1 and year == 1 else "Generated demonstration data",
@@ -183,8 +229,197 @@ def expand_college_demo(db):
             "faculty_with_one_module": len(faculty),
             "pending_teaching_allocations": unassigned,
         },
-        reason="Created source-backed curriculum coverage, one-to-one demo lecturer allocations and non-identifying planning students. Private roster names and identifiers were not imported.",
+        reason="Created source-backed curriculum coverage, one-to-one demo lecturer allocations and planning students. The subsequent local-only refresh synchronizes the authorised Computing roster when its ignored PDF is present.",
         result="Demo expansion ready",
+    )
+    db.commit()
+    return True
+
+
+def _set_values(record, **values):
+    changed = False
+    for key, value in values.items():
+        if getattr(record, key) != value:
+            setattr(record, key, value)
+            changed = True
+    return changed
+
+
+def _rename_legacy_generated_cohorts(db):
+    changed = False
+    legacy = re.compile(r"^P(\d+)-Y(\d+)$")
+    existing_names = {cohort.name for cohort in db.find(m.Cohort)}
+    for cohort in db.find(m.Cohort):
+        match = legacy.fullmatch(cohort.name)
+        if not match:
+            continue
+        target = _cohort_name(int(match.group(1)), int(match.group(2)))
+        if target in existing_names:
+            continue
+        existing_names.remove(cohort.name)
+        existing_names.add(target)
+        cohort.name = target
+        cohort.notes = (
+            f"{cohort.notes} Group label updated to the Islington College {target} convention."
+        ).strip()
+        changed = True
+    return changed
+
+
+def _sync_student_roster(db):
+    cohort = db.first(m.Cohort, {"name": "C1"})
+    if not cohort:
+        return False, 0
+    students = db.find(m.Student)
+    changed = False
+    source_candidates = sorted(
+        (
+            student for student in students
+            if student.code.startswith("STU-P1-Y1-")
+            or student.code.startswith("NP01CP4A")
+            or student.source.startswith("Student Details.pdf")
+        ),
+        key=lambda student: student.id or 0,
+    )
+    private_roster = load_private_student_roster()
+    source_ids = set()
+
+    if private_roster:
+        source_by_code = {student.code: student for student in source_candidates}
+        available = iter(source_candidates)
+        for row in private_roster:
+            student = source_by_code.get(row["college_id"])
+            if student is None:
+                student = next(available, None)
+            if student is None:
+                student = m.Student(
+                    code=row["college_id"],
+                    name=row["name"],
+                    email=f"{row['college_id'].lower()}@nexus.local",
+                    cohort_id=cohort.id,
+                    status="Active",
+                )
+                db.add(student)
+            source_ids.add(student.id)
+            changed |= _set_values(
+                student,
+                code=row["college_id"],
+                name=row["name"],
+                email=f"{row['college_id'].lower()}@nexus.local",
+                cohort_id=cohort.id,
+                status="Active",
+                source="Student Details.pdf · local roster",
+                data_status="Provided college roster",
+                notes=(
+                    f"Local roster import for London Met ID {row['london_met_id']}. "
+                    "The email is a non-deliverable NEXUS placeholder."
+                ),
+            )
+        changed |= _set_values(
+            cohort,
+            size=max(cohort.size, len(private_roster)),
+            source="Student Details.pdf · local roster",
+            data_status="Provided college roster",
+            notes=(
+                "Student roster supplied by the college user. Assigned to C1 because "
+                "the PDF does not state a section label."
+            ),
+        )
+
+    generated_index = 0
+    for student in sorted(students, key=lambda value: value.id or 0):
+        if student.id in source_ids or student.code.startswith("NP01CP4A"):
+            continue
+        generated = (
+            student.data_status.startswith("Generated")
+            or student.source.startswith("Generated")
+            or student.name.startswith("Student ")
+        )
+        if not generated:
+            continue
+        name = _synthetic_student_name(generated_index)
+        generated_index += 1
+        changed |= _set_values(
+            student,
+            name=name,
+            email=f"{student.code.lower()}@nexus.local",
+            data_status="Generated demonstration data",
+            source="Generated Nepalese planning profile",
+            notes="Synthetic planning identity; not a college student record.",
+        )
+    return changed, len(private_roster)
+
+
+def _has_programme(module, programme_id):
+    return module.programme_id == programme_id or programme_id in module.programme_ids
+
+
+def _refresh_module_codes(db):
+    changed = False
+    official_code = "CC7008"
+    modules = db.find(m.Module)
+    used_codes = {module.code for module in modules}
+    for module in modules:
+        if module.name == "Advanced Ethical Hacking and Security Compliance":
+            if module.code != official_code and official_code not in used_codes - {module.code}:
+                used_codes.remove(module.code)
+                used_codes.add(official_code)
+                module.code = official_code
+                changed = True
+            changed |= _set_values(
+                module,
+                catalogue_code=official_code,
+                source="College brochure curriculum · London Met Module Catalogue 2026/27",
+                data_status="Source module / official code verified",
+                notes=(
+                    "CC7008 was verified against the London Metropolitan University "
+                    "Module Catalogue for 2026/27. Lecturer allocation remains a "
+                    "generated planning assignment and needs confirmation."
+                ),
+            )
+        elif _has_programme(module, 20) and not module.catalogue_code:
+            note = (
+                "This Islington College validated specialisation module has no "
+                "publicly listed London Met module code. Keep the internal reference "
+                "code for scheduling until the academic office confirms one."
+            )
+            if note not in module.notes:
+                module.notes = f"{module.notes} {note}".strip()
+                changed = True
+    return changed
+
+
+def refresh_academic_demo(db):
+    """Upgrade existing demo data without committing private student records."""
+    if os.getenv("NEXUS_LOAD_DEMO", "true").lower() == "false":
+        return False
+    administrator = db.first(m.User, {"role": "Registrar", "active": True})
+    if not administrator:
+        return False
+    cohorts_changed = _rename_legacy_generated_cohorts(db)
+    roster_changed, private_count = _sync_student_roster(db)
+    codes_changed = _refresh_module_codes(db)
+    changed = cohorts_changed or roster_changed or codes_changed
+    if not changed:
+        return False
+    bump(db)
+    audit(
+        db,
+        administrator,
+        "ACADEMIC DEMO DATA REFRESHED",
+        "Cohort labels, student profiles and module codes",
+        new={
+            "refresh_version": DEMO_REFRESH_VERSION,
+            "private_roster_records_loaded": private_count,
+            "cohort_labels_updated": cohorts_changed,
+            "official_module_codes_updated": codes_changed,
+        },
+        reason=(
+            "Applied the Islington College cohort naming convention, synchronised "
+            "the user-supplied local roster where available, refreshed generated "
+            "student names, and verified public module-code evidence."
+        ),
+        result="Academic demonstration data refreshed",
     )
     db.commit()
     return True

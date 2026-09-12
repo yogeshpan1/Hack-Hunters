@@ -198,7 +198,7 @@ def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
 
 @app.post("/api/data/{entity}")
 def create(entity:str,body:s.Mutation,db=Depends(get_db),user=Depends(current_user)):
-    if entity=="sessions": raise HTTPException(403,"Use Timetable Studio or validated timetable import.")
+    if entity=="sessions": raise HTTPException(403,"Use Timetable Studio to create or change sessions.")
     model,_=entity_info(entity); require(user,MANAGE.get(entity,[])); values=validate_payload(entity,body.data,db)
     if entity=="rules": raise HTTPException(403,"The supported rule set is fixed; edit soft weights instead.")
     if entity=="users":
@@ -229,26 +229,6 @@ def remove(entity:str,ident:int,body:s.Reason,db=Depends(get_db),user=Depends(cu
     if not obj: raise HTTPException(404,"Record not found.")
     if entity in ["users","rules"]: raise HTTPException(403,"Disable users or edit rule weights instead of deleting.")
     old=serialize(obj); db.delete(obj); db.flush(); bump(db); audit(db,user,"DELETE",f"{entity}/{ident}",old,reason=body.reason); db.commit(); return {"deleted":ident}
-
-@app.post("/api/import")
-def import_data(body:s.ImportInput,db=Depends(get_db),user=Depends(current_user)):
-    require(user,MANAGE[body.entity]); errors=[]; values=[]
-    for i,row in enumerate(body.rows,1):
-        try: values.append(validate_payload(body.entity,row,db))
-        except HTTPException as exc: errors.append({"row":i,"error":exc.detail})
-    if errors: return {"valid":False,"errors":errors,"count":len(body.rows)}
-    model,_=entity_info(body.entity)
-    keys=[] if body.entity=="sessions" else ["name"] if body.entity in ["rooms","programmes","cohorts"] else ["code"]
-    for key in keys:
-        seen=set([getattr(x,key) for x in db.find(model)])
-        for i,row in enumerate(values,1):
-            if row[key] in seen: errors.append({"row":i,"error":f"Duplicate {key}: {row[key]}"})
-            seen.add(row[key])
-    if errors: return {"valid":False,"errors":errors,"count":len(body.rows)}
-    if body.confirm:
-        for value in values: db.add(model(**value))
-        db.flush(); bump(db); audit(db,user,"DATA IMPORT",body.entity,new={"rows":len(values)},reason="Validated bulk import"); db.commit()
-    return {"valid":True,"imported":body.confirm,"count":len(values),"errors":[],"preview":values,"notice":"Timetable conflicts are detected and persisted after import." if body.entity=="sessions" else "Validated records"}
 
 @app.get("/api/audit")
 def audit_log(db=Depends(get_db),user=Depends(current_user)):

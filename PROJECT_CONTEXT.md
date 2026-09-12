@@ -15,14 +15,14 @@ The implemented demonstration is: detect a timetable conflict → inspect its so
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide, Recharts, Axios, React Router. Native fetch consumes the optimizer NDJSON stream. No large component library or external state manager.
 - Default local storage uses MongoDB Community 8.0.32, a single-node replica set, and localhost binding. Transactions are required. Data is outside OneDrive in `%LOCALAPPDATA%\Nexus\MongoDB`. No Atlas account is created. Hosted deployments may configure Atlas.
 - Exactly one initial Registrar is bootstrapped into an empty database. A Registrar can add another Registrar. Legacy `Super Admin` accounts migrate to Registrar during startup so existing local access survives. There is no public registration or extra administrator hierarchy.
-- The current account-creation UI and API accept only the Registrar role. Teacher directory records do not create login accounts.
+- The protected account API accepts only the Registrar role; the standalone account-management screen has been removed. Teacher directory records do not create login accounts.
 - Credentials belong only in environment/local configuration. No default bootstrap password exists in current source. The setup helper accepts hidden input and never prints passwords. Existing accounts are preserved. Test passwords are random per test process.
 
 ## Architecture and important files
 
 | Area | Files and responsibility |
 | --- | --- |
-| App assembly / management | `backend/app/main.py`: lifespan, handlers, workspace, timetable mutations, CRUD/import, approve/publish, communications, exams |
+| App assembly / management | `backend/app/main.py`: lifespan, handlers, workspace, timetable mutations, CRUD, approve/publish, communications, exams |
 | Persistence | `backend/app/db.py`: request-scoped document repository, identity cache, transaction lifecycle, generated integer IDs, references, indexes |
 | Models | `backend/app/models.py`: Pydantic MongoDB document types; `schemas.py`: strict validated request contracts |
 | Scheduling | `backend/app/scheduling.py`: snapshot/enrichment, independent conflicts, calculated metrics, CP-SAT |
@@ -62,7 +62,7 @@ Raw documents are local references in `College Details Assets` and `UI Reference
 
 The automatic demo loads only when operational faculty/cohort/module/session collections are empty and there is no prior marker. It uses one coherent Autumn 2026 Level 6 AI1 profile (Routine-4), six sessions and three modules. Each named AI group is assumed to contain 30 students; this is visibly labelled demo-derived. Combined lecture attendance sums all selected groups. The original 180-person Friday lecture is intentionally relocated from its 180-seat reference hall to LT-05 (100 seats), producing one explicit demo capacity conflict. The original source JSON is unchanged, and the altered session's notes preserve the actual source allocation. One workshop is locked for demonstration.
 
-Existing users and Registrar edits are not overwritten. The expansion creates no staff login accounts. The private student PDF contributes only its verified 276-person Computing headcount; the database receives non-identifying generated planning students, not source names or IDs. Setting `NEXUS_LOAD_DEMO` false disables loading on an empty workspace. Rebuilding JSON extraction does not migrate existing database records.
+Existing users and Registrar edits are not overwritten. The expansion creates no staff login accounts. The ignored private student PDF is read only on the authorised local machine: its validated 276-row Computing roster is loaded into local MongoDB C1, while the PDF and raw source identifiers never enter Git or deployment artifacts. Other programme/year records use labelled generated Nepalese planning profiles. Setting `NEXUS_LOAD_DEMO` false disables loading on an empty workspace. Rebuilding JSON extraction does not migrate existing database records.
 
 Historical assessment deadlines and exam windows are displayed separately from timed exam allocations. Missing exact exam time, room and invigilator remain unknown; do not convert broad windows into invented exam bookings.
 
@@ -72,9 +72,9 @@ Public day indices stay Monday=0 through Friday=4; Sunday is appended as 5. The 
 
 A module carries default faculty/cohort/room requirements. A session can override faculty, `cohort_ids`, room type and resources; this is essential because a module has lectures and workshops with different spaces and sometimes different teachers. Combined-cohort overlaps are set intersections and attendance is the sum of group planning sizes, bounded below by active roster counts. Workshop does not automatically imply Lab: the source includes a workshop in classroom SR-01.
 
-Hard constraints: room/faculty/cohort overlap, seating and PC capacity, room type/equipment, room/faculty availability, teaching hours and locks. The independent detector checks initial schedules, solver output, manual previews and publication. Validated timetable imports may carry scheduling conflicts intentionally, but invalid field types, times and references are rejected. Generic session CRUD is blocked to preserve audited timetable actions.
+Hard constraints: room/faculty/cohort overlap, seating and PC capacity, room type/equipment, room/faculty availability, teaching hours and locks. The independent detector checks initial schedules, solver output, manual previews and publication. Invalid field types, times and references are rejected. Generic session CRUD is blocked to preserve audited timetable actions.
 
-Soft preferences: minimize moved sessions, avoid the first period, compact cohort teaching days, and reduce faculty hours beyond four per day. Weekly workload totals remain fixed. Room utilization is measured rather than promised to improve: moving fixed sessions alone may leave it unchanged. Solver configuration: one worker, seed 42, 12-second search limit. Feasible and optimal results are distinguished from infeasible/timeouts.
+Soft preferences: minimize moved sessions, avoid the first period, compact cohort teaching days, and reduce faculty hours beyond four per day. Weekly workload totals remain fixed. Room utilization is measured rather than promised to improve: moving fixed sessions alone may leave it unchanged. Solver configuration: one worker, seed 42, six-second search limit. Feasible and optimal results are distinguished from infeasible/timeouts.
 
 The NDJSON endpoint reports stages only as real backend work advances. Two solver streams per process are permitted; this is an in-process limit, not a distributed worker queue. No fake completion, time-based percentage or canned before/after numbers.
 
@@ -84,9 +84,9 @@ Islington is primary, NEXUS is product identity, ING is secondary. Preserve offi
 
 The Command Center follows the live Figma preview: a five-metric health strip, then Schedule Intelligence, ranked recommendations, and weekly operational load in three columns. The global command bar and Cmd/Ctrl+K open search/assistance; avoid a giant assistant button beside the page title.
 
-The signature startup is four seconds before overlay removal, with Skip introduction and immediate reduced-motion completion. SVG academic nodes organize into the NEXUS seal. Dark mode has been removed; keyboard controls, visible focus and text/icon status cues remain.
+The signature startup is four seconds before overlay removal, with Skip introduction and immediate reduced-motion completion. SVG academic nodes organize into the NEXUS seal. Dark mode has been removed; keyboard controls, visible focus and text/icon status cues remain. The centered command search keeps the primary workspace action in the header; bulk import and standalone user-management navigation are intentionally absent.
 
-Timetable Studio dynamically renders half-hour sessions and combined group names, retaining room/cohort/faculty/module views, selection inspector, drag-to-preview, lock and audited manual move. Provenance and the deliberate demo change are visible in session details. Faculty and programme details show source status and programme curriculum; unverified faculty email metadata is editable by authorized administrators.
+Timetable Studio dynamically renders half-hour sessions and combined group names, retaining room/cohort/faculty/module views, selection inspector, drag-to-preview, lock and audited manual move. Resolve conflicts opens the optimizer in a side drawer, retaining timetable context. Route changes reset scroll position so Optimization Lab and What-If Simulator open at their page headers. Provenance and the deliberate demo change are visible in session details. Faculty and programme details show source status and programme curriculum; unverified faculty email metadata is editable by authorized administrators.
 
 ## Assistant / audit / communication — DECIDED
 
@@ -103,12 +103,12 @@ COMPLETED and verified in this pass:
 - Source extraction and provenance; source-backed isolated demo; local MongoDB startup and connection.
 - Half-hour/Sunday/session overrides/combined-cohort scheduling and solver.
 - Persisted conflicts and revision snapshots; streaming real stages and readiness.
-- Existing CRUD/RBAC/authentication, source-email metadata, timetable import validation/preview.
+- Existing CRUD/RBAC/authentication and source-email metadata.
 - Approve/publish/what-if/manual override, audit, recipient drafts and notifications.
 - Read-only contextual assistant and expanded role-authorized global search.
 - Command Center cleanup, timetable updates, assessment reference view, reference hygiene and credential removal from current source.
-- Figma Command Center alignment, Registrar-only account creation, four-second startup, no dark mode, one-to-one faculty/module assignments, and non-identifying student planning data across every programme/year.
-- The final full suite passed: 43 backend tests against real MongoDB, including protected timetable actions and sanitized database failures. The production frontend build passed. Starlette's test-client integration emits one dependency deprecation warning.
+- Figma Command Center alignment, Registrar-only account creation, four-second startup, no dark mode, one-to-one faculty/module assignments, a local-only supplied Computing roster, and generated student planning data across every other programme/year.
+- The final full suite passed: 44 backend tests against real MongoDB, including protected timetable actions and sanitized database failures. The production frontend build passed. Starlette's test-client integration emits one dependency deprecation warning.
 - Browser observations confirmed the authenticated Command Center's actual 83.3% health/one capacity issue, selecting the Friday 06:30 combined-group session, visible source/demo notes, and assistant context. Solver-to-publication is covered by API tests; do not claim every screen was manually tested at every breakpoint.
 
 PARTIAL / IN PROGRESS:

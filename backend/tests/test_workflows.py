@@ -118,16 +118,14 @@ def test_crud_validation_and_audit(client,entity,data):
     logs=client.get("/api/audit").json()
     assert {"CREATE","UPDATE","DELETE"}.issubset({x["action"] for x in logs if x["entity"]==f"{entity}/{ident}"})
 
-def test_invalid_room_import_and_references(client):
+def test_invalid_room_and_reference_validation(client):
     sign_in(client,"admin")
     assert client.post("/api/data/rooms",json={"data":{"name":"X","building":"B","capacity":-1},"reason":"Test invalid capacity"}).status_code==422
     assert client.post("/api/data/modules",json={"data":{"code":"X","name":"X","programme_id":1,"faculty_id":999,"cohort_id":1},"reason":"Test missing faculty"}).status_code==422
-    body={"entity":"rooms","rows":[{"name":"Imported","building":"Demo","capacity":50}],"confirm":False}
-    assert client.post("/api/import",json=body).json()["valid"]
-    assert not any(r["name"]=="Imported" for r in client.get("/api/data/rooms").json())
-    body["confirm"]=True
-    assert client.post("/api/import",json=body).json()["imported"]
-    assert not client.post("/api/import",json=body).json()["valid"]
+
+
+def test_removed_bulk_import_endpoint_is_not_available(client):
+    assert client.post("/api/import",json={}).status_code==404
 
 def test_assistant_capacity_workload_context_and_no_fake_room_fix(registrar):
     answer=registrar.post("/api/assistant",json={"query":"Which room has capacity for 45 students?"}).json()
