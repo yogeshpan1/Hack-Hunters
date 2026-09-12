@@ -7,7 +7,7 @@ import {Button,ErrorNotice} from "../components/ui";
 
 export default function Login(){
  const {login}=useApp();
- const [email,setEmail]=useState("admin@nexus.demo"),[password,setPassword]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
  return <div className="login">
   <section className="login-brand">
    <div className="login-lockup"><NexusSeal size={74}/><div><span>ISLINGTON COLLEGE</span><h2>NEXUS</h2></div></div>

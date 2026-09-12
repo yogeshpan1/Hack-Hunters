@@ -13,7 +13,7 @@ from .models import User
 SECRET = os.getenv("JWT_SECRET") or secrets.token_hex(32)
 bearer = HTTPBearer(auto_error=False)
 ROLES = ["Super Admin", "Registrar", "Admissions", "HR Admin", "Programme Admin", "Facilities Admin", "Faculty", "Student"]
-MANAGE = {"rooms": ["Facilities Admin"], "faculty": ["HR Admin"], "programmes": ["Programme Admin", "Admissions"], "modules": ["Programme Admin"], "cohorts": ["Programme Admin", "Admissions"], "students": ["Admissions"], "users": [], "rules": ["Registrar"]}
+MANAGE = {"rooms": ["Facilities Admin"], "faculty": ["HR Admin"], "programmes": ["Programme Admin", "Admissions"], "modules": ["Programme Admin"], "cohorts": ["Programme Admin", "Admissions"], "students": ["Admissions"], "users": [], "sessions":["Registrar"], "rules": ["Registrar"]}
 
 def password_hash(password, salt=None):
     salt = salt or secrets.token_hex(16)

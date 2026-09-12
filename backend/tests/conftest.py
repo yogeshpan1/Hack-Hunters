@@ -1,3 +1,4 @@
+from credentials import TEST_PASSWORD, SECOND_PASSWORD
 import sys
 import uuid
 from pathlib import Path
@@ -40,6 +41,12 @@ def registrar(client):
     return client
 
 def sign_in(client,role):
-    response=client.post('/api/auth/login',json={'email':f'{role}@nexus.demo','password':'NexusDemo!2026'})
+    response=client.post('/api/auth/login',json={'email':f'{role}@nexus.demo','password':TEST_PASSWORD})
     assert response.status_code==200,response.text
     client.headers['Authorization']='Bearer '+response.json()['token']
+
+@pytest.fixture(autouse=True)
+def bootstrap_environment(monkeypatch):
+    monkeypatch.setenv('NEXUS_ADMIN_EMAIL','admin@example.test')
+    monkeypatch.setenv('NEXUS_ADMIN_PASSWORD',TEST_PASSWORD)
+    monkeypatch.setenv('NEXUS_LOAD_DEMO','false')

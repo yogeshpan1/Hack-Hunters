@@ -10,6 +10,7 @@ from pathlib import Path
 import pymupdf
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCE_ROOT = ROOT / 'College Details Assets'
 UG = 'ICK UG Brochure 2026.pdf'
 PG = 'ICK PG Brochure.pdf'
 UG_PROGRAMMES = [
@@ -81,14 +82,14 @@ def pg_curriculum(page, award):
 
 def main():
     programmes=[]
-    with pymupdf.open(ROOT/UG) as doc:
+    with pymupdf.open(SOURCE_ROOT/UG) as doc:
         for page,name,department,specialization in UG_PROGRAMMES:
             programmes.append({'id':len(programmes)+1,'name':name,'department':department,'award':name.split(' — ')[0],'level':'Undergraduate','specialization':specialization,'curriculum':ug_curriculum(doc[page-1]),'source':f'{UG} · PDF page {page}'})
-    with pymupdf.open(ROOT/PG) as doc:
+    with pymupdf.open(SOURCE_ROOT/PG) as doc:
         for page,award,specialization in PG_PROGRAMMES:
             programmes.append({'id':len(programmes)+1,'name':f'{award} — {specialization}','department':'Business' if award=='MBA' else 'Computing','award':award,'level':'Postgraduate','specialization':specialization,'curriculum':pg_curriculum(doc[page-1],award),'source':f'{PG} · PDF page {page}'})
     rooms=[]
-    with (ROOT/'Class Details.csv').open(encoding='utf-8-sig',newline='') as source:
+    with (SOURCE_ROOT/'Class Details.csv').open(encoding='utf-8-sig',newline='') as source:
         # The first two supplied headers differ only by case. Positional parsing
         # preserves both the descriptive room name and its scheduling code.
         rows=csv.reader(source);next(rows)

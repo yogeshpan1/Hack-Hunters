@@ -1,3 +1,4 @@
+from credentials import TEST_PASSWORD, SECOND_PASSWORD
 from app.models import User, Programme, Faculty, Cohort, Student, Room, Module, TimetableSession, ExamSession, Rule, ScheduleVersion, AuditLog
 from app.auth import password_hash
 
@@ -28,7 +29,7 @@ def seed(db):
         for j in range(c.size):
             n=(c.id-1)*100+j+1
             db.add(Student(code=f"DEMO-S{n:04}",name=f"Demo student {n:04}",email=f"student{n:04}@example.test",cohort_id=c.id))
-    hashed=password_hash("NexusDemo!2026")
+    hashed=password_hash(TEST_PASSWORD)
     users=[("R. Bhandari","registrar","Registrar"),("System Administrator","admin","Super Admin"),("Admissions Office","admissions","Admissions"),("HR Office","hr","HR Admin"),("Programme Office","programme","Programme Admin"),("Facilities Office","facilities","Facilities Admin"),("Priya Sharma","faculty","Faculty"),("Demo Student","student","Student")]
     for i,(name,handle,role) in enumerate(users,1):
         db.add(User(id=i,name=name,email=f"{handle}@nexus.demo",password_hash=hashed,role=role,faculty_id=1 if role=="Faculty" else None,cohort_id=1 if role=="Student" else None))

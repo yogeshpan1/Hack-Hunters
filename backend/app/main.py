@@ -12,15 +12,27 @@ from .auth import current_user,require,token_for,verify_password,password_hash,p
 from .scheduling import snapshot,enriched,conflicts,metrics,solve,changes_for,serialize,DAYS
 from .services import audit,revision,bump,communicate,visible_sessions
 from .seed import seed
+from .optimization_service import calculate_run
+from .optimizer_routes import router as optimizer_router
+from pymongo.errors import PyMongoError
 
 @asynccontextmanager
 async def lifespan(app):
-    initialize_database()
-    with SessionLocal() as db: seed(db)
+    try:
+        initialize_database()
+        with SessionLocal() as db: seed(db)
+    except PyMongoError:
+        raise RuntimeError("MongoDB startup failed. Check the local server and replica-set configuration.") from None
     yield
 
 app=FastAPI(title="NEXUS · Academic Operations Intelligence",version="1.0.0",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=["http://127.0.0.1:5173","http://localhost:5173"],allow_methods=["GET","POST","PUT","PATCH","DELETE"],allow_headers=["Authorization","Content-Type"])
+
+app.include_router(optimizer_router)
+
+@app.exception_handler(PyMongoError)
+async def database_error(request,exc):
+    return JSONResponse(status_code=503,content={"detail":"MongoDB is unavailable or could not complete this operation. Check the database service and retry."})
 
 @app.exception_handler(StorageConflict)
 async def integrity_error(request,exc):
@@ -45,7 +57,7 @@ def me(user=Depends(current_user)): return public_user(user)
 def workspace(db=Depends(get_db),user=Depends(current_user)):
     data=snapshot(db); sessions=visible_sessions(user,enriched(data)); ids={x["id"] for x in sessions}; issues=[c for c in conflicts(data) if set(c["session_ids"])&ids]
     if user.role in ["Student","Faculty"]:
-        mids={x["module_id"] for x in sessions}; fids={x["faculty_id"] for x in sessions}; cids={x["cohort_id"] for x in sessions}
+        mids={x["module_id"] for x in sessions}; fids={x["faculty_id"] for x in sessions}; cids={cid for x in sessions for cid in x["cohort_ids"]}
         data["sessions"]=[x for x in data["sessions"] if x["id"] in ids]; data["modules"]=[x for x in data["modules"] if x["id"] in mids]; data["faculty"]=[x for x in data["faculty"] if x["id"] in fids]; data["cohorts"]=[x for x in data["cohorts"] if x["id"] in cids]
         issues=conflicts(data)
     return {**data,"sessions":sessions,"conflicts":issues,"metrics":metrics(data),"programmes":[serialize(x) for x in db.find(m.Programme)],"revision":revision(db),"demo":True}
@@ -60,7 +72,8 @@ def create_session(body:s.SessionInput,db=Depends(get_db),user=Depends(current_u
     if not db.get(m.Module,body.module_id) or not db.get(m.Room,body.room_id):
         raise HTTPException(422,"Select an existing assigned module and room.")
     if body.revision!=revision(db): raise HTTPException(409,"The timetable changed. Refresh and retry.")
-    obj=m.TimetableSession(**body.model_dump(exclude={"reason","revision"}))
+    values=validate_payload("sessions",body.model_dump(exclude={"reason","revision"}),db)
+    obj=m.TimetableSession(**values)
     db.add(obj);db.flush()
     issues=[c for c in conflicts(snapshot(db)) if obj.id in c['session_ids']]
     if issues: raise HTTPException(409,"; ".join(c['detail'] for c in issues))
@@ -88,7 +101,7 @@ def move(ident:int,body:s.Move,db=Depends(get_db),user=Depends(current_user)):
     bump(db,body.revision); old=serialize(obj)
     obj.room_id=body.room_id; obj.day=body.day; obj.start=body.start; obj.state="override"
     audit(db,user,"MANUAL OVERRIDE",f"Session {ident}",old,serialize(obj),body.reason,"Published")
-    session=next(x for x in enriched(data,assignments) if x["id"]==ident); count=communicate(db,session,body.reason)
+    session=next(x for x in enriched(data,assignments) if x["id"]==ident); count=communicate(db,session,body.reason,user)
     db.commit(); return {**result,"status":"Published","recipients":count}
 
 @app.post("/api/timetable/{ident}/lock")
@@ -100,13 +113,7 @@ def lock(ident:int,body:s.Lock,db=Depends(get_db),user=Depends(current_user)):
 
 @app.post("/api/optimization")
 def optimize(body:s.RunInput,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); data=snapshot(db); scenario={}
-    if body.room_id is not None:
-        if not db.get(m.Room,body.room_id) or body.day is None: raise HTTPException(422,"Select an existing room and a weekday.")
-        scenario={"room_id":body.room_id,"day":body.day}
-    rev=revision(db); result=solve(data,scenario)
-    run=m.OptimizationRun(user_id=user.id,status=result["status"],kind="what-if" if scenario else "optimization",revision=rev,before=metrics(data),after=metrics(data,result["assignments"],scenario),assignments=result["assignments"],changes=changes_for(data,result["assignments"]) if result["assignments"] else [],scenario=scenario,explanation=result["explanation"])
-    db.add(run); db.flush(); audit(db,user,"SIMULATION CREATED",f"Run {run.id}",new={"status":run.status,"scenario":scenario},reason="Scenario analysis" if scenario else "Schedule optimization",result=run.status); db.commit(); return serialize(run)
+    return calculate_run(body,db,user)
 
 @app.post("/api/what-if")
 def what_if(body:s.RunInput,db=Depends(get_db),user=Depends(current_user)):
@@ -136,7 +143,7 @@ def run_action(ident:int,action:str,body:s.Reason,db=Depends(get_db),user=Depend
             if conflicts(data,run.assignments,run.scenario): raise HTTPException(409,"The proposed timetable no longer passes validation.")
             bump(db,run.revision)
             if run.scenario:
-                room=db.get(m.Room,run.scenario["room_id"]); before=serialize(room); room.unavailable=sorted(set(room.unavailable)|{f'{run.scenario["day"]}:{h}' for h in range(9,17)})
+                room=db.get(m.Room,run.scenario["room_id"]); before=serialize(room); room.unavailable=sorted(set(room.unavailable)|{f'{run.scenario["day"]}:{h}' for h in [6.5,*range(7,17)]})
                 audit(db,user,"ROOM AVAILABILITY",room.name,before,serialize(room),body.reason)
             changed_ids={c["id"] for c in run.changes}
             for a in run.assignments:
@@ -145,11 +152,11 @@ def run_action(ident:int,action:str,body:s.Reason,db=Depends(get_db),user=Depend
                 obj.room_id=a["room_id"]; obj.day=a["day"]; obj.start=a["start"]; obj.state="optimized"
                 audit(db,user,"SESSION OPTIMIZED",f"Session {obj.id}",before,serialize(obj),body.reason,"Published")
             for session in enriched(data,run.assignments):
-                if session["id"] in changed_ids: communicate(db,session,body.reason)
+                if session["id"] in changed_ids: communicate(db,session,body.reason,user)
             run.status="Published"
     audit(db,user,f"RUN {action.upper()}",f"Run {ident}",new={"status":run.status},reason=body.reason,result=run.status); db.commit(); return serialize(run)
 
-ENTITIES={"rooms":(m.Room,s.RoomInput),"faculty":(m.Faculty,s.FacultyInput),"programmes":(m.Programme,s.ProgrammeInput),"cohorts":(m.Cohort,s.CohortInput),"modules":(m.Module,s.ModuleInput),"students":(m.Student,s.StudentInput),"users":(m.User,s.UserInput),"rules":(m.Rule,s.RuleInput)}
+ENTITIES={"rooms":(m.Room,s.RoomInput),"faculty":(m.Faculty,s.FacultyInput),"programmes":(m.Programme,s.ProgrammeInput),"cohorts":(m.Cohort,s.CohortInput),"modules":(m.Module,s.ModuleInput),"students":(m.Student,s.StudentInput),"users":(m.User,s.UserInput),"rules":(m.Rule,s.RuleInput),"sessions":(m.TimetableSession,s.SessionRecord)}
 
 def entity_info(entity):
     if entity not in ENTITIES: raise HTTPException(404,"Unknown collection.")
@@ -162,6 +169,14 @@ def validate_payload(entity,payload,db):
     for field,model in [("programme_id",m.Programme),("faculty_id",m.Faculty),("cohort_id",m.Cohort)]:
         if values.get(field) is not None and not db.get(model,values[field]): raise HTTPException(422,f"Invalid {field}.")
     if entity=="modules" and db.get(m.Cohort,values["cohort_id"]).programme_id!=values["programme_id"]: raise HTTPException(422,"Module and cohort programmes must match.")
+    if entity=="sessions":
+        module=db.get(m.Module,values["module_id"])
+        if not module or not db.get(m.Room,values["room_id"]): raise HTTPException(422,"Session references an unknown module or room.")
+        if values["start"]+values["duration"]>17: raise HTTPException(422,"Session must end by 17:00.")
+        if len(set(values["cohort_ids"]))!=len(values["cohort_ids"]): raise HTTPException(422,"Duplicate cohort in session.")
+        for cid in values["cohort_ids"]:
+            cohort=db.get(m.Cohort,cid)
+            if not cohort or cohort.programme_id!=module.programme_id: raise HTTPException(422,"Session cohort must belong to its module programme.")
     if entity=="rooms":
         if values["building"].strip().lower()=="skill":
             values["kind"]="Lab"
@@ -178,6 +193,7 @@ def validate_payload(entity,payload,db):
 @app.get("/api/data/{entity}")
 def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
     model,_=entity_info(entity)
+    if entity=="sessions": return timetable(db,user)
     if entity=="users": require(user,[])
     if entity=="students": require(user,["Registrar","Admissions","Programme Admin"])
     if user.role in ["Student","Faculty"] and entity in ["faculty","modules","cohorts"]: return workspace(db,user)[entity]
@@ -185,6 +201,7 @@ def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
 
 @app.post("/api/data/{entity}")
 def create(entity:str,body:s.Mutation,db=Depends(get_db),user=Depends(current_user)):
+    if entity=="sessions": raise HTTPException(403,"Use Timetable Studio or validated timetable import.")
     model,_=entity_info(entity); require(user,MANAGE.get(entity,[])); values=validate_payload(entity,body.data,db)
     if entity=="rules": raise HTTPException(403,"The supported rule set is fixed; edit soft weights instead.")
     if entity=="users":
@@ -195,6 +212,7 @@ def create(entity:str,body:s.Mutation,db=Depends(get_db),user=Depends(current_us
 
 @app.put("/api/data/{entity}/{ident}")
 def edit(entity:str,ident:int,body:s.Mutation,db=Depends(get_db),user=Depends(current_user)):
+    if entity=="sessions": raise HTTPException(403,"Use the audited timetable workflow to change sessions.")
     model,_=entity_info(entity); require(user,MANAGE.get(entity,[])); obj=db.get(model,ident)
     if not obj: raise HTTPException(404,"Record not found.")
     if entity=="rules" and obj.kind=="Hard": raise HTTPException(403,"Hard constraints cannot be disabled.")
@@ -209,6 +227,7 @@ def edit(entity:str,ident:int,body:s.Mutation,db=Depends(get_db),user=Depends(cu
 
 @app.delete("/api/data/{entity}/{ident}")
 def remove(entity:str,ident:int,body:s.Reason,db=Depends(get_db),user=Depends(current_user)):
+    if entity=="sessions": raise HTTPException(403,"Use the audited timetable workflow to change sessions.")
     model,_=entity_info(entity); require(user,MANAGE.get(entity,[])); obj=db.get(model,ident)
     if not obj: raise HTTPException(404,"Record not found.")
     if entity in ["users","rules"]: raise HTTPException(403,"Disable users or edit rule weights instead of deleting.")
@@ -222,7 +241,7 @@ def import_data(body:s.ImportInput,db=Depends(get_db),user=Depends(current_user)
         except HTTPException as exc: errors.append({"row":i,"error":exc.detail})
     if errors: return {"valid":False,"errors":errors,"count":len(body.rows)}
     model,_=entity_info(body.entity)
-    keys=["name"] if body.entity in ["rooms","programmes","cohorts"] else ["code"]
+    keys=[] if body.entity=="sessions" else ["name"] if body.entity in ["rooms","programmes","cohorts"] else ["code"]
     for key in keys:
         seen=set([getattr(x,key) for x in db.find(model)])
         for i,row in enumerate(values,1):
@@ -232,7 +251,7 @@ def import_data(body:s.ImportInput,db=Depends(get_db),user=Depends(current_user)
     if body.confirm:
         for value in values: db.add(model(**value))
         db.flush(); bump(db); audit(db,user,"DATA IMPORT",body.entity,new={"rows":len(values)},reason="Validated bulk import"); db.commit()
-    return {"valid":True,"imported":body.confirm,"count":len(values),"errors":[]}
+    return {"valid":True,"imported":body.confirm,"count":len(values),"errors":[],"preview":values,"notice":"Timetable conflicts are detected and persisted after import." if body.entity=="sessions" else "Validated records"}
 
 @app.get("/api/audit")
 def audit_log(db=Depends(get_db),user=Depends(current_user)):
@@ -295,57 +314,14 @@ def exams(db=Depends(get_db),user=Depends(current_user)):
         rows.append({**serialize(exam),"code":mod["code"],"module":mod["name"],"room":room["name"],"capacity":room["capacity"],"students":cohort["size"],"invigilator":faculty[exam.invigilator_id]["name"],"conflicts":issues})
     return rows
 
-@app.get("/api/search")
-def search(q:str="",db=Depends(get_db),user=Depends(current_user)):
-    if not q.strip(): return []
-    w=workspace(db,user); results=[]
-    for key in ["rooms","faculty","modules","cohorts","programmes"]:
-        for row in w[key]:
-            if q.lower() in str(row).lower(): results.append({"entity":key,"id":row["id"],"label":row.get("code",row.get("name")),"detail":row.get("name","")})
-    return results[:30]
-
-@app.post("/api/assistant")
-def assistant(body:s.Question,db=Depends(get_db),user=Depends(current_user)):
-    import re
-    w=workspace(db,user); q=body.query.lower(); ctx=body.context; sessions=w["sessions"]
-    target=next((x for x in sessions if x["id"]==ctx.get("session_id") or x["code"].lower() in q),None)
-    answer=""; items=[]; action=None
-    if "who changed" in q or "audit" in q:
-        require(user,["Registrar"]); rows=audit_log(db,user)
-        if target: rows=[x for x in rows if x["entity"]==f'Session {target["id"]}']
-        items=[f'{x["actor"]}: {x["action"]} · {x["reason"]}' for x in rows[:5]]; answer="These are the recorded changes." if items else "There are no recorded changes for this session."
-    elif "workload" in q or "overload" in q or "heaviest" in q:
-        loads=[(f,sum(x["duration"] for x in sessions if x["faculty_id"]==f["id"])) for f in w["faculty"]]; loads.sort(key=lambda x:-x[1]); items=[f'{f["name"]}: {h} hours / {f["max_hours"]} weekly target' for f,h in loads]; answer="Teaching hours are calculated from the current timetable. Moving sessions can improve daily distribution, but does not reduce total teaching hours."
-    elif target and any(word in q for word in ["conflict","why","alternative","safe","resolve","room"]):
-        issues=[x["detail"] for x in w["conflicts"] if target["id"] in x["session_ids"]]; answer=f'{target["code"]} has {len(issues)} hard constraint issue(s). '+" ".join(issues)
-        valid=[]; data=snapshot(db)
-        for r in w["rooms"]:
-            a=[{"id":target["id"],"room_id":r["id"],"day":target["day"],"start":target["start"]}]
-            if not any(target["id"] in x["session_ids"] for x in conflicts(data,a)): valid.append(r)
-        items=[f'{r["name"]} · {r["capacity"]} seats · valid at the current time' for r in valid]
-        if not valid: answer+=" A room-only move cannot resolve all constraints; simulate changes to time and room together."
-        action="optimization"
-    elif "faculty" in q:
-        items=[f'{f["name"]} · {f["department"]}' for f in w["faculty"] if "computing" not in q or f["department"]=="Computing"]; answer="Faculty records available to your role."
-    elif any(word in q for word in ["room","lab","capacity","projector"]):
-        cap=re.search(r"(?:for|capacity(?: for)?)\s*(\d+)",q); minimum=int(cap.group(1)) if cap else 0
-        day=next((i for i,d in enumerate(DAYS) if d.lower() in q),None); tm=re.search(r"(?:at|after)\s*(\d{1,2})",q); hour=int(tm.group(1)) if tm else None
-        if hour is not None and hour<9: hour+=12
-        for r in w["rooms"]:
-            if not r["active"] or r["capacity"]<minimum or ("lab" in q and r["kind"]!="Lab"): continue
-            if any(word in q and equipment not in r["equipment"] for word,equipment in [("projector","Projector"),(" ac","AC")]): continue
-            if day is not None and hour is not None:
-                # Availability must use all bookings, even for a restricted user.
-                if f"{day}:{hour}" in r["unavailable"] or any(x["room_id"]==r["id"] and x["day"]==day and x["start"]<=hour<x["start"]+x["duration"] for x in enriched(snapshot(db))): continue
-            items.append(f'{r["name"]} · {r["capacity"]} seats · {", ".join(r["equipment"])}')
-        answer="Matching rooms from the database."+(" Availability checked for the requested one-hour slot." if day is not None and hour is not None else " Specify a weekday and hour to check availability.")
-    elif "optimiz" in q or "simulate" in q:
-        require(user,["Registrar"]); answer="Open Optimization Lab to calculate alternatives. The published schedule changes only after approval and publication."; action="optimization"
-    else:
-        answer="I support timetable conflicts, room capacity and availability, faculty workload, and audit queries. Try ‘Why is CS302 in conflict?’ or ‘Find a free lab Thursday at 2’."
-    return {"answer":answer,"items":items,"action":action,"mode":"Structured database assistant","context":ctx}
-
 @app.get("/api/analytics")
 def analytics(db=Depends(get_db),user=Depends(current_user)):
     w=workspace(db,user)
     return {"metrics":w["metrics"],"room_hours":[{"name":r["name"],"hours":sum(x["duration"] for x in w["sessions"] if x["room_id"]==r["id"])} for r in w["rooms"]],"daily_hours":[{"name":day[:3],"hours":sum(x["duration"] for x in w["sessions"] if x["day"]==i)} for i,day in enumerate(DAYS)]}
+
+from .intelligence_routes import router as intelligence_router
+app.include_router(intelligence_router)
+
+@app.get("/api/assessment-references")
+def assessment_references(db=Depends(get_db),user=Depends(current_user)):
+    return [record.data for record in db.find(m.AssessmentReference)]

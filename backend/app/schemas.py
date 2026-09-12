@@ -23,15 +23,19 @@ class RoomInput(Strict):
     @classmethod
     def slots(cls,values):
         for value in values:
-            parts=value.split(":")
-            if len(parts)!=2 or not all(x.isdigit() for x in parts) or not (0<=int(parts[0])<=4 and 9<=int(parts[1])<=16):
-                raise ValueError("Unavailable slots must use day:hour, e.g. 3:14 (Thursday 14:00).")
+            try:
+                day,hour=value.split(":"); day=int(day);hour=float(hour)
+                valid=0<=day<=5 and 6.5<=hour<17 and hour*2==int(hour*2)
+            except (ValueError,TypeError): valid=False
+            if not valid: raise ValueError("Availability must use day:hour on half-hours, e.g. 5:6.5 (Sunday 06:30).")
         return values
 
 class FacultyInput(Strict):
     name: str=Field(min_length=1,max_length=100)
     code: str=Field(min_length=1,max_length=40)
     department: str=Field(min_length=1,max_length=100)
+    email: str=Field(default="",max_length=200)
+    email_verified: bool=False
     max_hours: int=Field(default=18,ge=1,le=40)
     unavailable: list[str]=[]
     slots=field_validator("unavailable")(RoomInput.slots.__func__)
@@ -86,15 +90,15 @@ class Mutation(Strict):
 
 class RunInput(Strict):
     room_id: int | None=None
-    day: int | None=Field(default=None,ge=0,le=4)
+    day: int | None=Field(default=None,ge=0,le=5)
 
 class Reason(Strict):
     reason: str=Field(min_length=5,max_length=500)
 
 class Move(Reason):
     room_id: int=Field(gt=0)
-    day: int=Field(ge=0,le=4)
-    start: int=Field(ge=9,le=16)
+    day: int=Field(ge=0,le=5)
+    start: float=Field(ge=6.5,le=16.5,multiple_of=.5)
     revision: int
     confirm: bool=False
 
@@ -102,12 +106,19 @@ class Lock(Reason):
     locked: bool
     revision: int
 
-class SessionInput(Reason):
+class SessionRecord(Strict):
     module_id: int = Field(gt=0)
     room_id: int = Field(gt=0)
-    day: int = Field(ge=0,le=4)
-    start: int = Field(ge=9,le=16)
-    duration: int = Field(default=2,ge=1,le=8)
+    day: int = Field(ge=0,le=5)
+    start: float = Field(ge=6.5,le=16.5,multiple_of=.5)
+    duration: float = Field(default=2,ge=.5,le=10.5,multiple_of=.5)
+    faculty_id: int | None = Field(default=None,gt=0)
+    cohort_ids: list[int] = []
+    room_type: Literal["Classroom","Lab","Studio"] | None = None
+    resources: list[str] | None = None
+    session_type: Literal["Teaching","Lecture","Workshop","Tutorial","Lab"] = "Teaching"
+
+class SessionInput(SessionRecord,Reason):
     revision: int
 
 class Question(Strict):
@@ -121,6 +132,6 @@ class EmailInput(Strict):
     scheduled_at: str | None=None
 
 class ImportInput(Strict):
-    entity: Literal["rooms","faculty","programmes","cohorts","modules","students"]
+    entity: Literal["rooms","faculty","programmes","cohorts","modules","students","sessions"]
     rows: list[dict]=Field(min_length=1,max_length=500)
     confirm: bool=False

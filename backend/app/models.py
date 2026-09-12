@@ -38,6 +38,11 @@ class Faculty(Document):
     department: str
     max_hours: int = 18
     unavailable: list = Field(default_factory=list)
+    email: str = ""
+    email_verified: bool = False
+    source: str = ""
+    data_status: str = "User entered"
+    notes: str = ""
 
 class Cohort(Document):
     collection: ClassVar[str] = "cohorts"
@@ -45,6 +50,9 @@ class Cohort(Document):
     programme_id: int
     size: int
     level: int = 5
+    source: str = ""
+    data_status: str = "User entered"
+    notes: str = ""
 
 class Student(Document):
     collection: ClassVar[str] = "students"
@@ -77,14 +85,25 @@ class Module(Document):
     credits: int = 15
     room_type: str = "Classroom"
     resources: list = Field(default_factory=list)
+    source: str = ""
+    data_status: str = "User entered"
+    notes: str = ""
 
 class TimetableSession(Document):
     collection: ClassVar[str] = "sessions"
     module_id: int
     room_id: int
     day: int
-    start: int
-    duration: int = 2
+    start: float
+    duration: float = 2
+    faculty_id: int | None = None
+    cohort_ids: list[int] = Field(default_factory=list)
+    room_type: str | None = None
+    resources: list[str] | None = None
+    session_type: str = "Teaching"
+    source: str = ""
+    data_status: str = "User entered"
+    notes: str = ""
     locked: bool = False
     state: str = "normal"
 
@@ -94,9 +113,34 @@ class ExamSession(Document):
     room_id: int
     invigilator_id: int
     date: str
-    start: int
-    duration: int = 2
+    start: float
+    duration: float = 2
     status: str = "Draft"
+    source: str = ""
+    data_status: str = "User entered"
+    notes: str = ""
+
+class Conflict(Document):
+    collection: ClassVar[str] = "conflicts"
+    key: str
+    revision: int
+    kind: str
+    session_ids: list[int]
+    code: str
+    detail: str
+    severity: str = "Critical"
+    detected_at: str = Field(default_factory=now)
+
+class AssessmentReference(Document):
+    collection: ClassVar[str] = "assessment_references"
+    reference_id: str
+    data: dict
+
+class ConflictSnapshot(Document):
+    collection: ClassVar[str] = "conflict_snapshots"
+    revision: int
+    conflict_count: int
+    detected_at: str = Field(default_factory=now)
 
 class Rule(Document):
     collection: ClassVar[str] = "rules"

@@ -1,113 +1,122 @@
 # NEXUS
 
-Academic Operations Intelligence · Islington College hackathon prototype
+Academic Operations Intelligence for Islington College · ING ecosystem
 
-NEXUS manages academic resources, detects timetable conflicts, and calculates alternatives with Google OR-Tools CP-SAT. Registrars review, approve, and publish changes with an audit trail. The interface follows the supplied reference screenshots and opens with a five-second introduction (skippable; shortened for reduced motion).
+NEXUS helps academic teams identify timetable conflicts, calculate valid alternatives, review the impact, approve a change, and publish it with an audit trail and communication drafts. The hackathon demonstration focuses on this complete operational loop.
 
-## Run on this Windows PC
+## Start locally
 
-Prerequisites: Python 3.11+, Node.js 22+, npm. From the repository root:
+Prerequisites: Python 3.11+, Node.js 22+, npm. Run from the repository root:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 npm --prefix frontend ci
+.venv\Scripts\python.exe scripts/configure-local.py
 powershell -ExecutionPolicy Bypass -File scripts/setup-mongodb.ps1
 powershell -ExecutionPolicy Bypass -File scripts/start-nexus.ps1
 ```
 
-Open http://127.0.0.1:5173. API documentation: http://127.0.0.1:8000/docs.
+The configuration command asks for the initial administrator credentials using hidden password input and writes only to ignored `.env`. There is **no hard-coded default password**. Existing database accounts are preserved and are not changed by re-running setup. Existing users can change their password through the administrator's Users & Roles editor.
 
-On subsequent runs, use only `scripts/start-nexus.ps1`. It starts MongoDB and the two development servers in hidden windows. Logs are in `%LOCALAPPDATA%\Nexus\logs`. The script reuses occupied ports; check `/api/health` if another application is using port 8000 or 5173.
+Open http://127.0.0.1:5173. API docs: http://127.0.0.1:8000/docs. Later launches only need `scripts/start-nexus.ps1`. After backend code changes use `scripts/restart-nexus.ps1`; it verifies the process belongs to this project's virtual environment before stopping it. Servers run in hidden windows; logs are in `%LOCALAPPDATA%\Nexus\logs`.
 
-To start the servers manually after `scripts/start-mongodb.ps1`, run these in separate terminals:
+Manual development servers, in separate terminals after MongoDB starts:
 
 ```powershell
 .venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 npm --prefix frontend run dev
 ```
 
-## Database and accounts
+## MongoDB and configuration
 
-**MongoDB Community 8.0.32**, accessed through **PyMongo**, is the only application database. No PostgreSQL, SQLAlchemy, or SQLite fallback is used. The setup script downloads the official Windows archive, verifies its pinned SHA-256 checksum, and initializes a local single-node replica set named `nexus-rs`. Transactions make publication, revision updates, and audit records atomic.
+MongoDB Community 8.0.32 with PyMongo is the only application database. The Windows installer verifies the vendor archive checksum and initializes a local replica set, `nexus-rs`, for transactions. The local connection defaults to localhost, port 27017, database `nexus`; files are in `%LOCALAPPDATA%\Nexus\MongoDB`, outside OneDrive. The downloaded runtime is ignored under `tmp`. No Atlas or external service account is created. A hosted deployment can use a replica-set MongoDB Atlas connection through environment configuration.
 
-Default connection: `mongodb://127.0.0.1:27017/?replicaSet=nexus-rs`, database `nexus`. MongoDB listens on localhost. Files persist outside OneDrive at `%LOCALAPPDATA%\Nexus\MongoDB`; the executable is in ignored `tmp/mongodb-runtime`. The existing legacy `nexus.db` is preserved but is no longer read. Old fictional records are not copied into the college workspace.
+`.env.example` contains empty placeholders. Environment variable names:
 
-No MongoDB Atlas, college, Google, or other external account was created. This is a local database server with local application authentication. The bootstrap script creates exactly **one application administrator** when the users collection is empty:
+| Variable | Purpose |
+| --- | --- |
+| `MONGODB_URI`, `MONGODB_DATABASE` | Database connection and name; blank values use local defaults |
+| `JWT_SECRET` | Persistent session signing key; if unset a random process-local key expires sessions on restart |
+| `NEXUS_ADMIN_EMAIL`, `NEXUS_ADMIN_NAME`, `NEXUS_ADMIN_PASSWORD` | Bootstrap exactly one administrator in an empty database |
+| `NEXUS_LOAD_DEMO` | Set `false` to skip the reference-derived operational demo |
+| `EMAIL_PROVIDER` | Shipped communication adapter is demo only |
+| `EMAIL_API_KEY`, `LLM_API_KEY` | Reserved optional-adapter placeholders; no provider integration is currently implemented |
 
-- Email: `admin@nexus.demo`
-- Initial local-development password: `NexusDemo!2026`
-- Role: **Super Admin**
+Keep actual values out of source, documentation, screenshots, and logs. Never commit `.env`. An earlier development commit contained a shared demo password; it has been removed from the current source, but historical commits are preserved. Rotate any account that still uses a previously shared development password before sharing access. The legacy local `nexus.db` is untouched and is no longer used.
 
-Sign in, open **Users & Roles**, and choose **Add administrator or user**. Select **Super Admin** to give another person administrator access. Only administrators manage users; the system prevents removing the last active administrator. All additional accounts are explicitly created by an administrator. Public registration is not enabled.
+## Reference data and reliable demo
 
-Passwords are salted PBKDF2-SHA256 hashes with 200,000 iterations, never stored as plaintext. JWT sessions expire after eight hours and use a MongoDB-specific issuer, so legacy SQLite session tokens cannot authorize access to the new database. An unconfigured signing key changes on restart. Copy `.env.example` to ignored `.env` to set `JWT_SECRET`, `MONGODB_URI`, `MONGODB_DATABASE`, and bootstrap `NEXUS_ADMIN_NAME`, `NEXUS_ADMIN_EMAIL`, `NEXUS_ADMIN_PASSWORD`. Bootstrap variables apply only before the first initialization; they do not overwrite existing accounts. Replace the development password through the administrator editor before sharing access.
+The application runs from versioned structured JSON in `backend/data`; raw references remain local in **College Details Assets** and **UI Reference images**, both ignored. Official runtime logos are preserved unchanged in `frontend/public`.
 
-## Your college sources
+- 55 rooms, 2,821 seats, 20 programme paths and 280 published curriculum entries.
+- All rooms have AC/projector. The 16 Skill Block rooms have 510 confirmed PCs, one per seat. Other unconfirmed PC counts remain explicitly unknown.
+- 153 faculty names, with derived institutional email addresses marked unverified. These records do not create login accounts.
+- Seven separately preserved routine profiles containing 60 source rows; different terms are not silently merged.
+- 25 historical assessment components. Published deadlines/windows appear separately from exam allocations; missing exact times, venues and invigilators remain unknown.
 
-The first startup loads the versioned `backend/data/college_catalog.json`, derived from:
+On a workspace with no operational faculty, modules, cohorts or timetable, startup loads the coherent Autumn 2026 AI1 reference profile: six sessions, six named groups, three modules. **Thirty students per group is a demonstration assumption.** One 180-person combined lecture is intentionally moved from its reference hall to the 100-seat LT-05 to create a labelled capacity disruption. A workshop is locked to demonstrate preservation of fixed allocations. This does not claim the original college routine has an error.
 
-- `Class Details.csv`: **55 rooms and 2,821 seats**, preserving both the room code and descriptive name.
-- `ICK UG Brochure 2026.pdf`: **9 undergraduate programme paths**.
-- `ICK PG Brochure.pdf`: **11 postgraduate programme paths**.
+Seeding is transactional, audited, and idempotent. Existing operational edits prevent automatic demo loading. Set `NEXUS_LOAD_DEMO=false` before first startup for an empty planning workspace. No fake student roster or teacher login accounts are created in the live demo. Populated fictional test fixtures exist only under `backend/tests` and use generated ephemeral passwords.
 
-The catalogue contains **280 curriculum entries** across 20 programme paths. These are published curricula, not invented current teaching assignments. Programme details show the module names, published codes, periods, credits, and source PDF page. The PG brochure does not supply module codes, so those remain unset. MBA final-semester routes are alternatives. Credits are transcribed as printed, including apparent brochure discrepancies, and require college confirmation before credit audits.
-
-Your equipment instructions are applied: every room has AC and a projector; all **16 Skill Block rooms** are labs, with **510 confirmed PCs** (one per seat), including rooms with TR codes. Impact Block rooms with LAB codes are classified as labs, but their PC counts are unconfirmed and shown accordingly. The solver requires sufficient confirmed PCs when an assignment requires computers.
-
-The live workspace starts without fabricated faculty, cohorts, students, teaching sessions, or exams. Add faculty and cohorts, then create teaching assignments under Modules. Use **Add session** in Timetable Studio to allocate them. Every new session is validated and audited. Programme catalogue entries remain separate from these operational assignments.
-
-To regenerate the catalogue after checking source changes:
+See [data provenance](docs/DATA_PROVENANCE.md) for source rows, programme code differences, unresolved lecturer names, inferred emails, and assessment limitations. To regenerate extraction artifacts when the local references change:
 
 ```powershell
 .venv\Scripts\python.exe -m pip install pymupdf==1.28.2
 .venv\Scripts\python.exe scripts/extract-college-data.py
+.venv\Scripts\python.exe scripts/extract-operations-data.py
 ```
 
-Regeneration changes the seed file, not an already initialized database. Existing administrator edits are preserved; subsequent inventory updates require an explicit reviewed import or edit.
+Regeneration does not overwrite an already initialized database.
 
-## Architecture and features
+## Demonstrate the core workflow
 
-React 19, TypeScript, Vite, and Tailwind v4 provide the interface. FastAPI handles authentication, validation, and permissions. Pydantic document models and PyMongo provide persistence. OR-Tools CP-SAT calculates timetable alternatives.
+1. Sign in with the administrator account configured locally.
+2. Command Center shows the labelled capacity conflict. Open it in Timetable Studio.
+3. Ask NEXUS why the selected session conflicts and review available alternatives.
+4. Run Optimization Lab. Real streamed stages cover constraints, capacity/resources, availability, overlap constraints, CP-SAT search, and independent validation.
+5. Compare actual before/after metrics and proposed moves. The live timetable remains unchanged.
+6. Enter a decision reason, approve, then publish. Publication rechecks the schedule revision and all hard constraints.
+7. Review the audit timeline, affected-cohort notifications, and faculty email drafts. Demo send is explicitly simulated and never contacts an email provider.
+8. Use What-If Simulator to close a room for a weekday. Its closure and proposed allocations remain isolated until approved publication.
 
-- Command Center, daily timetable, resource management, curriculum catalogue, analytics, rules, audit timeline, and examination overview.
-- Timetable filters, session creation, audited manual moves, drag-to-preview, and allocation locks.
-- Real optimization and isolated what-if room closures with review → approve → publish flow.
-- Revision checks reject stale proposals; transactions prevent partial publication.
-- Validated JSON batch import with a dry run, CSV audit export, and fixed server-enforced roles.
-- Database-grounded assistant for supported scheduling questions; no external LLM is connected.
-- Affected-cohort notifications and editable email drafts. Delivery remains explicitly simulated and sends no external email.
-- Responsive light/dark themes, keyboard command palette, and reduced-motion support.
+## Features and roles
 
-Scheduling covers Monday–Friday, 09:00–17:00, in hour-aligned slots. Hard constraints include room capacity, PC capacity, type, equipment, room/faculty availability, overlap, and locks. The independent conflict detector checks solver proposals and publication. Soft weights favor fewer moves, later starts, fewer teaching days per cohort, and limited daily faculty hours. The solver uses one worker, a fixed seed, and a 12-second limit, distinguishing feasible, optimal, infeasible, and timeout results.
+The interface uses a quieter Islington navy/burgundy visual hierarchy: Schedule Health, Active Issues, concise NEXUS Recommendations, then Operational Insights. The untouched crest appears in the NEXUS seal, login and shell. The introduction lasts five seconds, is skippable, and shortens for reduced motion. Keyboard command search and contextual assistance preserve selected session/record context.
 
-Metrics come from stored records. An empty timetable reports zero health rather than claiming a verified schedule. Weekly workload cannot decrease merely by moving fixed teaching assignments.
+Fixed internal roles: Administrator (stored as `Super Admin` for compatibility), Registrar, Admissions, HR Admin, Programme Admin, Facilities Admin, Faculty and Student. Only administrators create accounts and assign existing roles. The last active administrator cannot be removed; users cannot remove their own administrator access. Public registration and additional administrator hierarchies are not implemented.
+
+Supported management includes rooms, faculty, programmes, teaching modules, cohorts, students, and internal users. JSON import provides upload/edit, validation, structured row preview and confirmation for rooms, faculty, programmes, cohorts, modules, students and timetable sessions. Invalid fields/references do not enter the database. Imported timetable clashes are retained as visible, persisted conflicts for review. Global search covers academic records and role-authorized student, exam and audit data.
+
+## Architecture and scheduling
+
+React 19 + TypeScript + Vite + Tailwind v4 + Lucide + Recharts + Axios → FastAPI/Pydantic → PyMongo/MongoDB. OR-Tools CP-SAT performs real scheduling; the assistant uses deterministic database queries without an external LLM.
+
+`backend/app/db.py` isolates the document repository, identity cache, references, indexes and transactions. Models are separate from request schemas. `scheduling.py` contains an independent conflict detector, metrics and solver. `optimization_service.py` saves proposals; `optimizer_routes.py` streams real stages and checks readiness. `intelligence_routes.py` handles search and assistant queries. `services.py` handles audit, revision and communication creation. `main.py` assembles the API and remaining management/publication routes.
+
+Integer document IDs preserve API compatibility. Collections represent independently queried records; curriculum, availability, proposal changes and source-assessment details are embedded where read together. Session faculty, combined-cohort membership and room/resource requirements can override module defaults, so lectures and workshops can share a module without false clashes.
+
+Days retain Monday=0 through Friday=4, with Sunday=5. The UI displays Sunday first. Public times use half-hour numeric values; CP-SAT uses integer half-hour ticks over 06:30–17:00. Hard constraints cover room/faculty/combined-cohort overlap, room/PC capacity, type/equipment, availability, teaching hours and locks. Legacy integer availability entries reserve a full hour; `.5` entries reserve half an hour.
+
+Soft weights minimize disruption, discourage first periods, compact cohort teaching days, and reduce daily faculty overload. Weekly teaching totals do not change merely through rescheduling. Room type stays a hard requirement. The solver uses one worker, a fixed seed and a 12-second limit, distinguishing feasible/optimal, infeasible, and timeout results.
+
+Academic mutations persist conflict records and revision snapshots in the same transaction. Publication atomically updates allocations, room closures, audit, notifications and email drafts. Compare-and-swap revision checks reject stale proposals. The assistant never mutates live data; room-only suggestions are independently checked, and ambiguous room context asks for a session rather than guessing.
 
 ## Docker alternative
 
-Copy `.env.example` to `.env` and set a strong `JWT_SECRET` and bootstrap administrator password, then:
+Configure `.env` locally, then run `docker compose up --build`. Compose runs MongoDB with a replica set, FastAPI, and Nginx serving the production frontend. MongoDB is internal to the Compose network; data persists in its named volume. Stop local development servers first if using the same ports. The Docker configuration is validated, but the complete Docker stack has not been exercised in this implementation pass.
 
-```powershell
-docker compose up --build
-```
-
-Compose runs MongoDB 8.0.32 as a single-node replica set, FastAPI, and Nginx serving the built frontend. MongoDB is internal to the Compose network; data persists in `nexus_mongodb`. Open http://127.0.0.1:5173. Stop the local development servers first if using those same ports. The Windows setup scripts are not needed for Docker. An external MongoDB deployment must support replica-set transactions.
-
-## Verification
-
-Start MongoDB, then run:
+## Tests and current limits
 
 ```powershell
 .venv\Scripts\python.exe -m pytest backend/tests -q
 npm --prefix frontend run build
 ```
 
-The 35 backend tests use isolated, uniquely named databases on the real local MongoDB replica set. They cover bootstrap inventory, administrator creation, last-admin protection, references and transaction rollback, concurrent revisions, authentication, permissions, CRUD, scheduling, PC constraints, optimization, publication, and communication drafts. Fictional populated scenarios live only in `backend/tests/demo_seed.py` and are never seeded into the running college workspace.
+43 tests pass against isolated databases on real MongoDB. Coverage includes authentication/RBAC, management and import validation, transactional rollback, stale revisions, combined-cohort overlaps, half-hour sessions, PC capacity, locked sessions, infeasibility, what-if, streaming progress, source-demo bootstrap, publication, persisted conflict history, audit, notifications, demo email drafts, protected timetable actions, and sanitized database failures. The production frontend build also passes. A dependency deprecation warning remains in Starlette's test-client integration.
 
-## Prototype boundaries
+Known boundaries: weekly recurrence only, no full academic calendar/holiday engine; exact exam scheduling and seating/invigilator optimization are not implemented; exam allocations remain read-only. Assessment references do not substitute for confirmed schedules. Student bulk editing and CSV column-mapping are not available. Some lists use bounded result sets/client filtering rather than server pagination. Conflict history is stored but a historical trend chart is not yet exposed. No external LLM, email delivery, SSO, prediction engine, password recovery, login rate limiting or distributed solver worker is included. Production authentication and database hardening remain deployment work.
 
-One weekly timetable is modeled; multi-semester recurrence and travel time are not. Examinations are a read-only draft overview. Equipment is represented by attributes and a confirmed PC count, without separate equipment reservations. Roles have fixed capability sets. JSON import is supported; spreadsheet column mapping is not. There is no real email, SSO, password recovery, login rate limiting, external LLM, background mail worker, or production migration framework. Brochure data describes published programmes, not verified current enrolment or staffing. The local MongoDB setup is intended for development on a trusted PC.
+## Repository and handoff
 
-## Git workflow
-
-Repository: https://github.com/NormieGit/Hackathon-.git. Source, source brochures, reference assets, and lockfiles belong in Git. Database files, environments, secrets, logs, runtime archives, dependency folders, and build output are ignored. Push reviewed commits without force.
+Repository: https://github.com/NormieGit/Hackathon-.git. Keep runtime source/assets, extracted data, tests, lockfiles and documentation in Git. Reference PDFs/images, dependencies, caches, builds, archives, logs and secrets remain ignored. Existing history is not rewritten or force-pushed. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) before continuing development and keep it current after architectural decisions.

@@ -9,8 +9,8 @@ from pymongo.read_concern import ReadConcern
 from pymongo.write_concern import WriteConcern
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017/?replicaSet=nexus-rs")
-MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "nexus")
+MONGODB_URI = (os.getenv("MONGODB_URI") or "mongodb://127.0.0.1:27017/?replicaSet=nexus-rs")
+MONGODB_DATABASE = (os.getenv("MONGODB_DATABASE") or "nexus")
 client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
 
 class StorageConflict(Exception):
@@ -22,7 +22,7 @@ REFERENCES = {
     "cohorts": {"programme_id": "programmes"},
     "students": {"cohort_id": "cohorts"},
     "modules": {"programme_id": "programmes", "faculty_id": "faculty", "cohort_id": "cohorts"},
-    "sessions": {"module_id": "modules", "room_id": "rooms"},
+    "sessions": {"module_id": "modules", "room_id": "rooms", "faculty_id":"faculty"},
     "exams": {"module_id": "modules", "room_id": "rooms", "invigilator_id": "faculty"},
     "optimization_runs": {"user_id": "users"}, "audit_logs": {"user_id": "users"},
     "approvals": {"run_id": "optimization_runs", "user_id": "users"},
@@ -44,6 +44,9 @@ def initialize_database(database=None):
     if "counters" not in db.list_collection_names(): db.create_collection("counters")
     db["students"].create_index([("cohort_id",1),("status",1)])
     db["sessions"].create_index([("day",1),("room_id",1)])
+    db["conflicts"].create_index([("revision",1),("session_ids",1)])
+    db["conflict_snapshots"].create_index("revision",unique=True)
+    db["audit_logs"].create_index([("entity",1),("id",-1)])
     return db
 
 class MongoSession:
@@ -136,12 +139,17 @@ class MongoSession:
                     self.database[key[0]].replace_one({"id":obj.id},value,session=self._transaction())
                     changed.append((key,value))
             for collection,ident in self.deleted:
+                if collection=="cohorts" and self.database.sessions.find_one({"cohort_ids":ident},session=self._transaction()):
+                    raise StorageConflict("This cohort is referenced by a combined teaching session.")
                 for source,fields in REFERENCES.items():
                     for field,target in fields.items():
                         if target==collection and self.database[source].find_one({field:ident},session=self._transaction()):
                             raise StorageConflict("This record is still referenced by another record.")
                 self.database[collection].delete_one({"id":ident},session=self._transaction())
             for (collection,_),value in changed:
+                if collection=="sessions":
+                    for cid in value.get("cohort_ids",[]):
+                        if not self.database.cohorts.find_one({"id":cid},session=self._transaction()): raise StorageConflict("Referenced session cohort does not exist.")
                 for field,target in REFERENCES.get(collection,{}).items():
                     ident=value.get(field)
                     if ident is not None and not self.database[target].find_one({"id":ident},session=self._transaction()):
@@ -149,6 +157,9 @@ class MongoSession:
             if any(k[0]=="users" for k,_ in changed) or any(k[0]=="users" for k in self.deleted):
                 if not self.database.users.find_one({"role":"Super Admin","active":True},session=self._transaction()):
                     raise StorageConflict("At least one active administrator must remain.")
+            if any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions","rules","schedule_versions"} for k,_ in changed) or any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions"} for k in self.deleted):
+                from .conflict_store import persist_conflicts
+                persist_conflicts(self)
             if self.session and self.session.in_transaction: self.session.commit_transaction()
             self.cache.clear();self.original.clear();self.deleted.clear()
         except (DuplicateKeyError,OperationFailure) as exc:

@@ -16,3 +16,22 @@ playwright-report/
 tmp/
 
 *.tsbuildinfo
+
+# Local source material; runtime logos and extracted JSON are versioned separately.
+/College Details Assets/
+/UI Reference images/
+/Screenshot (*.png
+/*.pdf
+/Class Details.csv
+/ING.png
+/Islington College.png
+build/
+venv/
+logs/
+coverage/
+.cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.zip

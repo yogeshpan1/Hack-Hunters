@@ -18,6 +18,7 @@ services:
       NEXUS_ADMIN_EMAIL: ${NEXUS_ADMIN_EMAIL:-admin@nexus.demo}
       NEXUS_ADMIN_NAME: ${NEXUS_ADMIN_NAME:-NEXUS Administrator}
       NEXUS_ADMIN_PASSWORD: ${NEXUS_ADMIN_PASSWORD:?Set NEXUS_ADMIN_PASSWORD in .env}
+      NEXUS_LOAD_DEMO: ${NEXUS_LOAD_DEMO:-true}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

@@ -1,3 +1,4 @@
+from credentials import TEST_PASSWORD, SECOND_PASSWORD
 import json
 import pytest
 from fastapi.testclient import TestClient
@@ -28,9 +29,9 @@ def test_college_bootstrap_is_idempotent_and_has_one_admin(empty_database):
 
 def test_administrator_can_create_another_admin_but_cannot_lock_itself_out(client):
     sign_in(client,'admin')
-    response=client.post('/api/data/users',json={'data':{'name':'Second Admin','email':'second@example.test','role':'Super Admin','password':'ValidTestPass123'},'reason':'Add the second administrator'})
+    response=client.post('/api/data/users',json={'data':{'name':'Second Admin','email':'second@example.test','role':'Super Admin','password':SECOND_PASSWORD},'reason':'Add the second administrator'})
     assert response.status_code==200,response.text
-    response=client.post('/api/auth/login',json={'email':'second@example.test','password':'ValidTestPass123'})
+    response=client.post('/api/auth/login',json={'email':'second@example.test','password':SECOND_PASSWORD})
     assert response.status_code==200
     client.headers['Authorization']='Bearer '+response.json()['token']
     account=response.json()['user']

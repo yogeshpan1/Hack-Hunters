@@ -12,13 +12,18 @@ from .auth import password_hash
 CATALOG_PATH = Path(__file__).resolve().parents[1] / 'data' / 'college_catalog.json'
 
 def seed(db):
-    if db.first(User): return
+    from .reference_seed import load_reference_demo
+    if db.first(User):
+        load_reference_demo(db)
+        return
     catalog=json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
     for record in catalog['programmes']: db.add(Programme(**record))
     for record in catalog['rooms']: db.add(Room(**record))
-    password=os.getenv('NEXUS_ADMIN_PASSWORD','NexusDemo!2026')
+    password=os.getenv('NEXUS_ADMIN_PASSWORD','')
     if len(password)<10: raise ValueError('NEXUS_ADMIN_PASSWORD must have at least 10 characters.')
-    admin=User(id=1,name=os.getenv('NEXUS_ADMIN_NAME','NEXUS Administrator'),email=os.getenv('NEXUS_ADMIN_EMAIL','admin@nexus.demo').lower(),password_hash=password_hash(password),role='Super Admin')
+    email=os.getenv('NEXUS_ADMIN_EMAIL','').strip().lower()
+    if '@' not in email: raise ValueError('Set NEXUS_ADMIN_EMAIL before initializing an empty database.')
+    admin=User(id=1,name=os.getenv('NEXUS_ADMIN_NAME') or 'NEXUS Administrator',email=email,password_hash=password_hash(password),role='Super Admin')
     db.add(admin)
     db.add(ScheduleVersion(id=1,revision=1))
     for name in ['No room double booking','No faculty double booking','No cohort overlaps','Capacity and required equipment','Availability and locked sessions']:
@@ -27,3 +32,4 @@ def seed(db):
         db.add(Rule(name=name,kind='Soft',weight=weight))
     db.add(AuditLog(user_id=admin.id,actor=admin.name,role=admin.role,action='COLLEGE INITIALIZED',entity='College inventory',reason='Imported supplied classroom inventory and UG/PG brochure curriculum; created the first administrator.',new={'rooms':len(catalog['rooms']),'programmes':len(catalog['programmes'])},result='Ready'))
     db.commit()
+    load_reference_demo(db)
