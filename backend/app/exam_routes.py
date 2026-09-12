@@ -1,4 +1,4 @@
-"""Audited examination planning with preview and explicit confirmation."""
+
 from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import Field, field_validator
