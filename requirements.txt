@@ -1,6 +1,0 @@
-groq
-python-dotenv
-mysql-connector-python
-fastapi
-uvicorn[standard]
-resend
