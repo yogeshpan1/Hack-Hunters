@@ -96,6 +96,16 @@ Regeneration does not overwrite an already initialized database.
 7. Review the audit timeline, affected-cohort notifications, and faculty email drafts. Demo send is explicitly simulated and never contacts an email provider.
 8. Use What-If Simulator to close a room for a weekday. Its closure and proposed allocations remain isolated until approved publication.
 
+### Add conflicts for optimization practice
+
+To add two labelled room double-bookings to an initialized workspace, run:
+
+```powershell
+.venv\Scripts\python.exe scripts/add-demo-conflicts.py
+```
+
+The command verifies that Optimization Lab can produce a conflict-free solution before saving the clashes. It records the original rooms and an audit entry, preserves locked sessions, and leaves the solution unpublished for you to review and apply in Optimization Lab. It runs once per workspace and does not reintroduce conflicts after you resolve them. These local MongoDB allocations are not uploaded to GitHub; the script makes the demonstration reproducible on other initialized workspaces.
+
 ## Features and roles
 
 The interface follows the supplied Figma hierarchy: a health KPI strip, Schedule Intelligence, ranked improvements and weekly operational load. The untouched crest appears in the NEXUS seal, login and shell. The introduction lasts four seconds, is skippable, and ends immediately for reduced motion. Keyboard command search and contextual assistance preserve selected session/record context. Dark mode is not included.
@@ -135,7 +145,7 @@ Known boundaries: weekly recurrence only, no full academic calendar/holiday engi
 
 ## Repository and handoff
 
-Repository: https://github.com/NormieGit/Hackathon-.git. Keep runtime source/assets, extracted data, tests, lockfiles and documentation in Git. Reference PDFs/images, dependencies, caches, builds, archives, logs and secrets remain ignored. Existing history is not rewritten or force-pushed. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) before continuing development and keep it current after architectural decisions.
+Repository: https://github.com/yogeshpan1/Hack-Hunters.git. Keep runtime source/assets, extracted data, tests, lockfiles and documentation in Git. Reference PDFs/images, dependencies, caches, builds, archives, logs and secrets remain ignored. Existing history is not rewritten or force-pushed. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) before continuing development and keep it current after architectural decisions.
 
 The September 2026 UI pass follows the supplied UI Overview.mov: candidate comparison in Optimization Lab, three-column What-If analysis, workload bars and faculty detail, and Operations Analytics. Examination drafts use a deterministic first-fit planner, checking recurring teaching commitments as well as exam conflicts. Preview does not write; saving requires an unchanged workspace revision and records an audit entry. An exam can include all cohorts taking its module and split students across multiple venues.
 

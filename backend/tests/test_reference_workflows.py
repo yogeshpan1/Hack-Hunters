@@ -5,6 +5,7 @@ from app.main import app
 from app.db import MongoSession,get_db
 from app.seed import seed
 from app.scheduling import snapshot,enriched,conflicts,solve
+from app.demo_conflicts import add_demo_conflicts
 from credentials import TEST_PASSWORD
 from conftest import sign_in
 
@@ -34,6 +35,16 @@ def test_reference_demo_end_to_end(empty_database,monkeypatch):
         assert any(s['start']==6.5 for s in enriched(data))
         assert max(s['size'] for s in enriched(data))>=180
         assert db.database.conflicts.count_documents({'revision':2})==1
+        locked_before = [s.model_dump() for s in sessions if s.locked]
+        overlay = add_demo_conflicts(db)
+        assert overlay['status'] == 'Applied'
+        assert overlay['conflicts'] == 3
+        assert sum(issue['kind'] == 'Room clash' for issue in conflicts(snapshot(db))) == 2
+        assert [s.model_dump() for s in db.find(m.TimetableSession) if s.locked] == locked_before
+        demo_revision = db.first(m.ScheduleVersion).revision
+        assert db.database.conflicts.count_documents({'revision': demo_revision}) == 3
+        assert add_demo_conflicts(db)['status'].startswith('Already applied')
+        assert db.first(m.ScheduleVersion).revision == demo_revision
     def request_db():
         with MongoSession(empty_database) as db: yield db
     app.dependency_overrides[get_db]=request_db
@@ -47,12 +58,15 @@ def test_reference_demo_end_to_end(empty_database,monkeypatch):
         assert any(e.get('stage')=='search' for e in events)
         run=events[-1]['run']
         assert run['status']=='Review' and run['after']['conflicts']==0
-        assert len(client.get('/api/conflicts').json())==1
+        assert len(client.get('/api/conflicts').json())==3
         reason={'reason':'Resolve the explicitly labelled demo capacity disruption'}
         for action in ['approve','publish']:
             response=client.post(f"/api/optimization/{run['id']}/{action}",json=reason)
             assert response.status_code==200,response.text
         assert client.get('/api/conflicts').json()==[]
+        with MongoSession(empty_database) as db:
+            assert add_demo_conflicts(db)['status'].startswith('Already applied')
+            assert conflicts(snapshot(db)) == []
         assert client.get('/api/emails').json()
         assert client.get('/api/notifications').json()
         assert all('example.test' not in e['recipient'] for e in client.get('/api/emails').json())
