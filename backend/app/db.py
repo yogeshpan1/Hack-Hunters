@@ -150,6 +150,9 @@ class MongoSession:
                     self.database[key[0]].replace_one({"id":obj.id},value,session=self._transaction())
                     changed.append((key,value))
             for collection,ident in self.deleted:
+                array_field={"rooms":"room_ids","faculty":"invigilator_ids","cohorts":"cohort_ids"}.get(collection)
+                if array_field and self.database.exams.find_one({array_field:ident},session=self._transaction()):
+                    raise StorageConflict("This record is referenced by an examination allocation.")
                 if collection=="cohorts" and self.database.sessions.find_one({"cohort_ids":ident},session=self._transaction()):
                     raise StorageConflict("This cohort is referenced by a combined teaching session.")
                 for source,fields in REFERENCES.items():
@@ -158,6 +161,10 @@ class MongoSession:
                             raise StorageConflict("This record is still referenced by another record.")
                 self.database[collection].delete_one({"id":ident},session=self._transaction())
             for (collection,_),value in changed:
+                if collection=="exams":
+                    for field,target in [("room_ids","rooms"),("invigilator_ids","faculty"),("cohort_ids","cohorts")]:
+                        for ident in value.get(field,[]):
+                            if not self.database[target].find_one({"id":ident},session=self._transaction()): raise StorageConflict("Referenced exam resource does not exist.")
                 if collection=="sessions":
                     for cid in value.get("cohort_ids",[]):
                         if not self.database.cohorts.find_one({"id":cid},session=self._transaction()): raise StorageConflict("Referenced session cohort does not exist.")
@@ -166,8 +173,8 @@ class MongoSession:
                     if ident is not None and not self.database[target].find_one({"id":ident},session=self._transaction()):
                         raise StorageConflict(f"Referenced {target} record does not exist.")
             if any(k[0]=="users" for k,_ in changed) or any(k[0]=="users" for k in self.deleted):
-                if not self.database.users.find_one({"role":{"$in":["Registrar","Super Admin"]},"active":True},session=self._transaction()):
-                    raise StorageConflict("At least one active Registrar must remain.")
+                if not self.database.users.find_one({"role":{"$in":["SuperAdmin","Registrar","Super Admin"]},"active":True},session=self._transaction()):
+                    raise StorageConflict("At least one active SuperAdmin / Registrar must remain.")
             if any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions","rules","schedule_versions"} for k,_ in changed) or any(k[0] in {"rooms","faculty","cohorts","students","modules","sessions"} for k in self.deleted):
                 from .conflict_store import persist_conflicts
                 persist_conflicts(self)

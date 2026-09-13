@@ -28,13 +28,13 @@ def readiness(data):
 
 @router.get('/readiness')
 def get_readiness(db=Depends(get_db),user=Depends(current_user)):
-    require(user,['Registrar'])
+    require(user,['RTE'])
     return readiness(snapshot(db))
 
 
 @router.post('/optimization/stream')
 def stream(body:RunInput,db=Depends(get_db),user=Depends(current_user)):
-    require(user,['Registrar'])
+    require(user,['RTE'])
     if not slots.acquire(blocking=False): raise HTTPException(429,'The solver is busy. Try again after the current calculation.')
     database=db.database
     messages=Queue()

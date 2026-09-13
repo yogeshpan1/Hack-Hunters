@@ -141,3 +141,17 @@ def test_email_demo_delivery_and_schedule_validation(registrar,db):
     assert r.status_code==200 and r.json()["status"]=="Demo delivered"
     r=registrar.put(f"/api/emails/{email.id}",json={"subject":"Room updated","body":"Please review","action":"schedule","scheduled_at":"2020-01-01T10:00:00+00:00"})
     assert r.status_code==422
+
+
+def test_rte_can_prepare_deduplicated_custom_email_drafts(registrar):
+    response=registrar.post("/api/emails/recipients",json={
+        "custom_recipients":["External.Contact@example.test","external.contact@example.test"],
+        "subject":"Assessment update",
+        "body":"Please review the revised assessment information.",
+    })
+    assert response.status_code==200,response.text
+    assert response.json()=={"prepared":1,"student_recipients":0,"custom_recipients":1}
+    invalid=registrar.post("/api/emails/recipients",json={
+        "custom_recipients":["not-an-email"],"subject":"Assessment update","body":"Please review the revised assessment information.",
+    })
+    assert invalid.status_code==422

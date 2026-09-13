@@ -97,3 +97,12 @@
 @media(max-width:800px){.candidate-layout,.scenario-columns{grid-template-columns:1fr}.candidate-engine,.candidate-empty{min-height:280px}.recorded-kpis.five{grid-template-columns:repeat(3,1fr)}.recorded-kpis.four{grid-template-columns:repeat(2,1fr)}.recommendation-grid{grid-template-columns:1fr}.workload-row{grid-template-columns:120px 1fr 90px;gap:8px}.scenario-sentence{flex-wrap:wrap}.scenario-sentence>.btn{margin-left:0}.candidate-card h3{font-size:11px}}
 
 .recorded-planning .scenario-sentence{margin-bottom:16px}
+
+/* Recording alignment: compact navigation and comparable faculty loads. */
+@media(min-width:951px){.app-shell{--sidebar-width:210px}.nav-link{font-size:12px;min-height:32px}.nav-group{padding-top:15px}.sidebar nav{padding-inline:10px}.brand-lockup{height:56px;padding:10px 16px}}
+.workload-target{position:absolute;top:0;bottom:0;border-left:1px dashed #70757b;transform:translateX(-1px)}
+.faculty-detail-column .recorded-kpis strong.error-text{color:var(--maroon)}
+.faculty-detail-column .recorded-kpis strong.underload-count{color:#a98b38}
+.peak-week>div>div{position:relative;height:26px}.peak-week button{position:absolute;top:0;height:26px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;border-left:2px solid var(--primary);min-width:4px}
+
+.faculty-day-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px;overflow:auto}.faculty-day-grid>div>small{display:block;color:#667085;margin:6px 0}.faculty-day-track{height:420px;position:relative;background:repeating-linear-gradient(to bottom,#f4f6f9 0,#f4f6f9 39px,#e1e5eb 40px);border-radius:8px}.faculty-day-track button{position:absolute;left:3px;right:3px;overflow:hidden;text-align:left;background:#e9eef7;border:1px solid #c4cede;border-left:3px solid #20365a;border-radius:5px;padding:5px;color:#20365a;font-size:11px}.faculty-day-track button span,.faculty-day-track button small{display:block}.faculty-availability{margin:20px 0}.workload-track.unscheduled i{background:#a6aebb}

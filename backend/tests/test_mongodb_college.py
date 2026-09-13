@@ -14,7 +14,7 @@ def test_college_bootstrap_is_idempotent_and_has_one_admin(empty_database):
     with MongoSession(empty_database) as db:
         seed(db);seed(db)
         assert len(db.find(m.User))==1
-        assert db.first(m.User).role=='Registrar'
+        assert db.first(m.User).role=='SuperAdmin'
         rooms=db.find(m.Room)
         assert len(rooms)==55
         assert sum(r.capacity for r in rooms)==2821

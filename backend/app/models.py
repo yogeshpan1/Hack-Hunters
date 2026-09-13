@@ -36,6 +36,7 @@ class Faculty(Document):
     name: str
     code: str
     department: str
+    attends_masters: bool = False
     max_hours: int = 18
     unavailable: list = Field(default_factory=list)
     email: str = ""
@@ -50,6 +51,7 @@ class Cohort(Document):
     programme_id: int
     size: int
     level: int = 5
+    study_level: str = "Second Year"
     period: str = ""
     intake: str = "Autumn"
     academic_year: str = "2026/27"
@@ -109,6 +111,9 @@ class TimetableSession(Document):
     duration: float = 2
     faculty_id: int | None = None
     cohort_ids: list[int] = Field(default_factory=list)
+    planned_size: int | None = Field(default=None, ge=1)
+    section_label: str = ""
+    week_pattern: str = "Weekly"
     room_type: str | None = None
     resources: list[str] | None = None
     session_type: str = "Teaching"
@@ -123,6 +128,10 @@ class ExamSession(Document):
     module_id: int
     room_id: int
     invigilator_id: int
+    room_ids: list[int] = Field(default_factory=list)
+    invigilator_ids: list[int] = Field(default_factory=list)
+    cohort_ids: list[int] = Field(default_factory=list)
+    venue_allocations: list[dict] = Field(default_factory=list)
     date: str
     start: float
     duration: float = 2
@@ -209,6 +218,7 @@ class Notification(Document):
     timestamp: str = Field(default_factory=now)
 
 class Email(Document):
+    provider_id: str | None = None
     collection: ClassVar[str] = "emails"
     recipient: str
     subject: str

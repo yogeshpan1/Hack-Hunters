@@ -32,3 +32,11 @@ def load_private_student_roster() -> list[dict[str, str]]:
         for _, london_met_id, name, college_id in ROSTER_PATTERN.findall(text)
     ]
     return rows if len(rows) == 276 and len({row["college_id"] for row in rows}) == 276 else []
+
+
+def student_email(name: str) -> str:
+    """College convention supplied by the user: first.last, omitting middle names."""
+    parts = name.lower().split()
+    first = re.sub(r"[^a-z0-9]", "", parts[0])
+    last = re.sub(r"[^a-z0-9]", "", parts[-1])
+    return f"{first}.{last}@islingtoncollege.edu.np"

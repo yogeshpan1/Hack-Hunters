@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from .auth import ROLES
@@ -41,6 +42,7 @@ class FacultyInput(EmailRecord):
     department: str=Field(min_length=1,max_length=100)
     email: str=Field(default="",max_length=200,pattern=r"^$|^[^\s@]+@[^\s@]+\.[^\s@]+$")
     email_verified: bool=False
+    attends_masters: bool=False
     max_hours: int=Field(default=18,ge=1,le=40)
     unavailable: list[str]=[]
     slots=field_validator("unavailable")(RoomInput.slots.__func__)
@@ -54,6 +56,7 @@ class CohortInput(Strict):
     programme_id: int=Field(gt=0)
     size: int=Field(ge=1,le=1000)
     level: int=Field(default=5,ge=3,le=8)
+    study_level: Literal["First Year","Second Year","Third Year","Masters"] = "Second Year"
 
 class ModuleInput(Strict):
     code: str=Field(min_length=1,max_length=40)
@@ -77,7 +80,7 @@ class UserInput(EmailRecord):
     email: str=Field(pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     role: str
     active: bool=True
-    password: str | None=Field(default=None,min_length=10)
+    password: str | None=Field(default=None,min_length=4,max_length=256)
     @field_validator("role")
     @classmethod
     def role_known(cls,value):
@@ -89,11 +92,13 @@ class RuleInput(Strict):
 
 class Mutation(Strict):
     data: dict
-    reason: str=Field(min_length=5,max_length=500)
+    reason: str=Field(default="Record maintenance",max_length=500)
 
 class RunInput(Strict):
     strategy: Literal['balanced','rooms','faculty']='balanced'
+    scenario_kind: Literal['room','faculty']='room'
     room_id: int | None=None
+    faculty_id: int | None=None
     day: int | None=Field(default=None,ge=0,le=5)
 
 class Reason(Strict):
@@ -118,19 +123,55 @@ class SessionRecord(Strict):
     duration: float = Field(default=2,ge=.5,le=10.5,multiple_of=.5)
     faculty_id: int | None = Field(default=None,gt=0)
     cohort_ids: list[int] = []
+    planned_size: int | None = Field(default=None,ge=1)
+    section_label: str = Field(default="",max_length=80)
+    week_pattern: Literal["Weekly","A Week","B Week"] = "Weekly"
     room_type: Literal["Classroom","Lab","Studio"] | None = None
     resources: list[str] | None = None
     session_type: Literal["Teaching","Lecture","Workshop","Tutorial","Lab"] = "Teaching"
 
-class SessionInput(SessionRecord,Reason):
+class SessionInput(SessionRecord):
+    revision: int
+    reason: str=Field(default="Session created",max_length=500)
+
+class DeleteRecord(Strict):
+    reason: str=Field(default="Record deleted",max_length=500)
+
+class DeleteAllocation(DeleteRecord):
     revision: int
 
 class Question(Strict):
     query: str=Field(min_length=1,max_length=1000)
     context: dict={}
+    history: list[str]=Field(default_factory=list,max_length=6)
+
+    @field_validator("history")
+    @classmethod
+    def bounded_history(cls, values):
+        if any(len(v)>1000 for v in values): raise ValueError("History question is too long")
+        return values
 
 class EmailInput(Strict):
     subject: str=Field(min_length=1,max_length=200)
     body: str=Field(min_length=1,max_length=10000)
     action: Literal["draft","send","schedule"]="draft"
     scheduled_at: str | None=None
+
+class RecipientMessage(Strict):
+    cohort_id: int | None = Field(default=None,gt=0)
+    student_ids: list[int] = Field(default_factory=list,max_length=1000)
+    custom_recipients: list[str] = Field(default_factory=list,max_length=1000)
+    subject: str = Field(min_length=1,max_length=200)
+    body: str = Field(min_length=1,max_length=10000)
+
+    @field_validator("custom_recipients")
+    @classmethod
+    def custom_email_addresses(cls, values):
+        normalized=[]
+        for value in values:
+            email=value.strip().lower()
+            if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+",email):
+                raise ValueError("Each custom recipient must be a valid email address.")
+            if email not in normalized:
+                normalized.append(email)
+        return normalized

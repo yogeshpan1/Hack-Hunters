@@ -5,13 +5,13 @@ import {api,errorText} from "../api";
 import {AskNexus,Badge,Button,Empty,ErrorNotice,Modal,PageHeader,Panel} from "../components/ui";
 import {DAYS,time,type Readiness,type Run} from "../types";
 
-type SolverOptions={strategy?:"balanced"|"rooms"|"faculty";whatif?:boolean;room?:number;day?:number;onStage:(label:string)=>void};
+type SolverOptions={strategy?:"balanced"|"rooms"|"faculty";whatif?:boolean;scenarioKind?:"room"|"faculty";room?:number;faculty?:number;day?:number;onStage:(label:string)=>void};
 
-async function streamOptimizer({strategy="balanced",whatif=false,room,day,onStage}:SolverOptions):Promise<Run>{
+async function streamOptimizer({strategy="balanced",whatif=false,scenarioKind="room",room,faculty,day,onStage}:SolverOptions):Promise<Run>{
  const response=await fetch("/api/optimization/stream",{
   method:"POST",
   headers:{"Content-Type":"application/json",Authorization:"Bearer "+(sessionStorage.getItem("nexus-token")||"")},
-  body:JSON.stringify(whatif?{room_id:room,day,strategy}:{strategy}),
+  body:JSON.stringify(whatif?{scenario_kind:scenarioKind,room_id:scenarioKind==="room"?room:undefined,faculty_id:scenarioKind==="faculty"?faculty:undefined,day,strategy}:{strategy}),
  });
  if(!response.ok){
   const payload=await response.json().catch(()=>({}));
@@ -109,16 +109,16 @@ function ResultReview({run,busy,reason,setReason,onAction,compact=false}:ResultR
 export default function Optimization({whatif=false}:{whatif?:boolean}){
  const {workspace:w,refresh,notify}=useApp();
  const [candidates,setCandidates]=useState<(Run|null)[]>([null,null,null]),[selected,setSelected]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(""),[stages,setStages]=useState<string[]>([]),[reason,setReason]=useState(""),[review,setReview]=useState(false);
- const [room,setRoom]=useState(0),[day,setDay]=useState(3),[readiness,setReadiness]=useState<Readiness|null>(null);
+ const [scenarioKind,setScenarioKind]=useState<"room"|"faculty">("room"),[room,setRoom]=useState(0),[faculty,setFaculty]=useState(0),[day,setDay]=useState(3),[readiness,setReadiness]=useState<Readiness|null>(null);
  useEffect(()=>{void api.get<Readiness>("/readiness").then(r=>setReadiness(r.data)).catch(e=>setError(errorText(e)));},[w?.revision]);
  if(!w)return null;
- const roomId=room||w.rooms[0]?.id,affected=w.sessions.filter(s=>s.room_id===roomId&&s.day===day),run=candidates[selected];
+ const roomId=room||w.rooms[0]?.id,facultyId=faculty||w.faculty[0]?.id,affected=w.sessions.filter(s=>(scenarioKind==="room"?s.room_id===roomId:s.faculty_id===facultyId)&&s.day===day),run=candidates[selected];
  async function calculate(){
   setBusy(true);setError("");setCandidates([null,null,null]);setStages([]);setSelected(0);setReason("");
   try{
    const strategies=(whatif?["balanced"]:["balanced","rooms","faculty"]) as ("balanced"|"rooms"|"faculty")[];
    for(let i=0;i<strategies.length;i++){
-    const result=await streamOptimizer({strategy:strategies[i],whatif,room:roomId,day,onStage:label=>setStages(current=>[...current,`${whatif?"Simulation":"Option "+String.fromCharCode(65+i)} · ${label}`])});
+    const result=await streamOptimizer({strategy:strategies[i],whatif,scenarioKind,room:roomId,faculty:facultyId,day,onStage:label=>setStages(current=>[...current,`${whatif?"Simulation":"Option "+String.fromCharCode(65+i)} · ${label}`])});
     setCandidates(current=>current.map((value,index)=>index===i?result:value));
    }
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
@@ -134,13 +134,13 @@ export default function Optimization({whatif=false}:{whatif?:boolean}){
   <PageHeader eyebrow={whatif?"INTELLIGENCE · SIMULATION":"INTELLIGENCE · OPTIMIZATION"} title={whatif?"What happens if…?":"Optimization Lab"} subtitle={whatif?"Model a disruption, see what breaks, and review a resolution before you commit.":"Generate, compare and select a feasible schedule."} actions={!whatif&&runButton}/>
   {error&&<ErrorNotice message={error}/>}
   {whatif?<>
-   <div className="scenario-sentence"><span>Simulate: Room</span><select aria-label="Scenario room" disabled={busy} value={roomId} onChange={e=>{setRoom(Number(e.target.value));resetScenario();}}>{w.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select><span>becomes unavailable on</span><select aria-label="Scenario day" disabled={busy} value={day} onChange={e=>{setDay(Number(e.target.value));resetScenario();}}>{DAYS.map((d,i)=><option key={d} value={i}>{d}</option>)}</select>{runButton}</div>
+   <div className="scenario-sentence"><span>Simulate:</span><select aria-label="Scenario type" disabled={busy} value={scenarioKind} onChange={e=>{setScenarioKind(e.target.value as "room"|"faculty");resetScenario();}}><option value="room">Room closure</option><option value="faculty">Faculty absence</option></select>{scenarioKind==="room"?<select aria-label="Scenario room" disabled={busy} value={roomId} onChange={e=>{setRoom(Number(e.target.value));resetScenario();}}>{w.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select>:<select aria-label="Scenario faculty" disabled={busy} value={facultyId} onChange={e=>{setFaculty(Number(e.target.value));resetScenario();}}>{w.faculty.map(value=><option key={value.id} value={value.id}>{value.name} · {value.department}</option>)}</select>}<span>is unavailable on</span><select aria-label="Scenario day" disabled={busy} value={day} onChange={e=>{setDay(Number(e.target.value));resetScenario();}}>{DAYS.map((d,i)=><option key={d} value={i}>{d}</option>)}</select>{runButton}</div>
    <div className="recorded-kpis three">{[["Affected sessions",affected.length],["Affected cohorts",new Set(affected.flatMap(s=>s.cohort_ids)).size],["Affected faculty",new Set(affected.map(s=>s.faculty_id)).size]].map(([label,value])=><Panel key={label}><span className="eyebrow">{label}</span><strong>{value}</strong></Panel>)}</div>
    <div className="scenario-columns">{["Before","After incident","After optimization"].map((label,i)=>{
     const ready=i===0||!!run,success=run&&["Review","Approved","Published"].includes(run.status);
     const value=i===0?w.metrics.conflicts:i===1?run?.incident?.conflicts??null:success?run.after.conflicts:null;
     const use=i===0?w.metrics.utilization:i===1?run?.incident?.utilization??null:success?run.after.utilization:null;
-    return <Panel key={label} className={i===1?"incident-card":i===2?"resolved-card":""}><h3><i/>{label}</h3><p className="fine-print">{i===0?"Current committed schedule":i===1?`${w.rooms.find(r=>r.id===roomId)?.name} closed · ${DAYS[day]}`:"NEXUS proposed resolution"}</p><div className="scenario-metric"><span>Conflicts</span><strong>{ready?value??"—":"—"}</strong></div><div className="conflict-ticks">{Array.from({length:8},(_,k)=><i key={k} className={ready&&value&&k<value?"filled":""}/>)}</div><div className="scenario-metric"><span>Room utilization</span><b>{ready&&use!==null?`${use}%`:"—"}</b></div><div className="meter teal"><span style={{width:`${ready?use||0:0}%`}}/></div><p className="scenario-note">{i===0?"Baseline operating state across Islington College.":i===1?"Each affected session needs an alternative room or time.":run?run.explanation:"Run the simulation to calculate an alternative."}</p></Panel>;
+    return <Panel key={label} className={i===1?"incident-card":i===2?"resolved-card":""}><h3><i/>{label}</h3><p className="fine-print">{i===0?"Current committed schedule":i===1?`${scenarioKind==="room"?w.rooms.find(r=>r.id===roomId)?.name:w.faculty.find(value=>value.id===facultyId)?.name} unavailable · ${DAYS[day]}`:"NEXUS proposed resolution"}</p><div className="scenario-metric"><span>Conflicts</span><strong>{ready?value??"—":"—"}</strong></div><div className="conflict-ticks">{Array.from({length:8},(_,k)=><i key={k} className={ready&&value&&k<value?"filled":""}/>)}</div><div className="scenario-metric"><span>Room utilization</span><b>{ready&&use!==null?`${use}%`:"—"}</b></div><div className="meter teal"><span style={{width:`${ready?use||0:0}%`}}/></div><p className="scenario-note">{i===0?"Baseline operating state across Islington College.":i===1?"Each affected session needs an alternative room, faculty member, or time.":run?run.explanation:"Run the simulation to calculate an alternative."}</p></Panel>;
    })}</div>
    {busy&&<Panel className="planning-progress">{stages.at(-1)||"Preparing simulation…"}</Panel>}
    {run&&<Panel className="scenario-proposals"><div className="section-heading"><h2>Proposed movements</h2><Badge>{run.status}</Badge></div><ResultReview compact run={run} busy={busy} reason={reason} setReason={setReason} onAction={action}/></Panel>}

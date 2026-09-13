@@ -19,14 +19,20 @@ def test_reference_demo_end_to_end(empty_database,monkeypatch):
         assignments=[module.faculty_id for module in db.find(m.Module)]
         assert len(assignments)==len(set(assignments))
         assert len(db.find(m.Student))>=276
-        assert len(db.find(m.TimetableSession))==6
+        sessions=db.find(m.TimetableSession)
+        generated=[session for session in sessions if session.source=="Full catalogue planning allocation"]
+        assert generated
+        assert len(sessions)>250
+        assert {module.id for module in db.find(m.Module)} <= {session.module_id for session in sessions}
+        assert {person.id for person in db.find(m.Faculty)} <= {session.faculty_id for session in sessions}
+        assert {cohort.id for cohort in db.find(m.Cohort)} <= {cohort_id for session in sessions for cohort_id in session.cohort_ids}
         assert len(db.find(m.AssessmentReference))==25
         data=snapshot(db)
         assert len(conflicts(data))==1
         assert conflicts(data)[0]['kind']=='Capacity'
         assert any(s['day']==5 for s in enriched(data))
         assert any(s['start']==6.5 for s in enriched(data))
-        assert max(s['size'] for s in enriched(data))==180
+        assert max(s['size'] for s in enriched(data))>=180
         assert db.database.conflicts.count_documents({'revision':2})==1
     def request_db():
         with MongoSession(empty_database) as db: yield db

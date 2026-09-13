@@ -50,3 +50,5 @@ def bootstrap_environment(monkeypatch):
     monkeypatch.setenv('NEXUS_ADMIN_EMAIL','admin@example.test')
     monkeypatch.setenv('NEXUS_ADMIN_PASSWORD',TEST_PASSWORD)
     monkeypatch.setenv('NEXUS_LOAD_DEMO','false')
+    for name in ['NEXUS_SUPERADMIN_EMAIL','NEXUS_SUPERADMIN_PASSWORD','NEXUS_RTE_EMAIL','NEXUS_RTE_PASSWORD','NEXUS_SSD_EMAIL','NEXUS_SSD_PASSWORD']:
+        monkeypatch.delenv(name,raising=False)

@@ -70,7 +70,7 @@ def timetable(db=Depends(get_db),user=Depends(current_user)):
 
 @app.post("/api/timetable")
 def create_session(body:s.SessionInput,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"])
+    require(user,["RTE"])
     if not db.get(m.Module,body.module_id) or not db.get(m.Room,body.room_id):
         raise HTTPException(422,"Select an existing assigned module and room.")
     if body.revision!=revision(db): raise HTTPException(409,"The timetable changed. Refresh and retry.")
@@ -84,13 +84,26 @@ def create_session(body:s.SessionInput,db=Depends(get_db),user=Depends(current_u
     db.commit()
     return serialize(obj)
 
+@app.delete("/api/timetable/{ident}")
+def delete_session(ident:int,body:s.DeleteAllocation,db=Depends(get_db),user=Depends(current_user)):
+    require(user,["RTE"])
+    obj=db.get(m.TimetableSession,ident)
+    if not obj: raise HTTPException(404,"Session not found.")
+    if obj.locked: raise HTTPException(409,"Unlock the session before deleting it.")
+    old=serialize(obj)
+    bump(db,body.revision)
+    db.delete(obj); db.flush()
+    audit(db,user,"SESSION DELETED",f"Session {ident}",previous=old,reason=body.reason)
+    db.commit()
+    return {"deleted":ident}
+
 @app.get("/api/conflicts")
 def get_conflicts(db=Depends(get_db),user=Depends(current_user)):
     return workspace(db,user)["conflicts"]
 
 @app.post("/api/timetable/{ident}/move")
 def move(ident:int,body:s.Move,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); obj=db.get(m.TimetableSession,ident)
+    require(user,["RTE"]); obj=db.get(m.TimetableSession,ident)
     if not obj: raise HTTPException(404,"Session not found.")
     if obj.locked: raise HTTPException(409,"Unlock the session before moving it.")
     if not db.get(m.Room,body.room_id): raise HTTPException(422,"Room does not exist.")
@@ -108,7 +121,7 @@ def move(ident:int,body:s.Move,db=Depends(get_db),user=Depends(current_user)):
 
 @app.post("/api/timetable/{ident}/lock")
 def lock(ident:int,body:s.Lock,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); obj=db.get(m.TimetableSession,ident)
+    require(user,["RTE"]); obj=db.get(m.TimetableSession,ident)
     if not obj: raise HTTPException(404,"Session not found.")
     bump(db,body.revision); old=serialize(obj); obj.locked=body.locked; obj.state="locked" if body.locked else "normal"
     audit(db,user,"SESSION LOCK",f"Session {ident}",old,serialize(obj),body.reason); db.commit(); return serialize(obj)
@@ -124,11 +137,11 @@ def what_if(body:s.RunInput,db=Depends(get_db),user=Depends(current_user)):
 
 @app.get("/api/optimization")
 def runs(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.OptimizationRun,descending=True,limit=30)]
+    require(user,["RTE"]); return [serialize(x) for x in db.find(m.OptimizationRun,descending=True,limit=30)]
 
 @app.post("/api/optimization/{ident}/{action}")
 def run_action(ident:int,action:str,body:s.Reason,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); run=db.get(m.OptimizationRun,ident)
+    require(user,["RTE"]); run=db.get(m.OptimizationRun,ident)
     if not run: raise HTTPException(404,"Run not found.")
     if action not in ["approve","publish","discard"]: raise HTTPException(404,"Unknown action.")
     if action=="discard":
@@ -145,8 +158,12 @@ def run_action(ident:int,action:str,body:s.Reason,db=Depends(get_db),user=Depend
             if conflicts(data,run.assignments,run.scenario): raise HTTPException(409,"The proposed timetable no longer passes validation.")
             bump(db,run.revision)
             if run.scenario:
-                room=db.get(m.Room,run.scenario["room_id"]); before=serialize(room); room.unavailable=sorted(set(room.unavailable)|{f'{run.scenario["day"]}:{h}' for h in [6.5,*range(7,17)]})
-                audit(db,user,"ROOM AVAILABILITY",room.name,before,serialize(room),body.reason)
+                if run.scenario.get("kind", "room")=="faculty":
+                    faculty=db.get(m.Faculty,run.scenario["faculty_id"]); before=serialize(faculty); faculty.unavailable=sorted(set(faculty.unavailable)|{f'{run.scenario["day"]}:{h}' for h in [6.5,*range(7,17)]})
+                    audit(db,user,"FACULTY AVAILABILITY",faculty.name,before,serialize(faculty),body.reason)
+                else:
+                    room=db.get(m.Room,run.scenario["room_id"]); before=serialize(room); room.unavailable=sorted(set(room.unavailable)|{f'{run.scenario["day"]}:{h}' for h in [6.5,*range(7,17)]})
+                    audit(db,user,"ROOM AVAILABILITY",room.name,before,serialize(room),body.reason)
             changed_ids={c["id"] for c in run.changes}
             for a in run.assignments:
                 if a["id"] not in changed_ids: continue
@@ -178,7 +195,7 @@ def validate_payload(entity,payload,db):
         if len(set(values["cohort_ids"]))!=len(values["cohort_ids"]): raise HTTPException(422,"Duplicate cohort in session.")
         for cid in values["cohort_ids"]:
             cohort=db.get(m.Cohort,cid)
-            if not cohort or cohort.programme_id!=module.programme_id: raise HTTPException(422,"Session cohort must belong to its module programme.")
+            if not cohort: raise HTTPException(422,"Session references an unknown cohort.")
     if entity=="rooms":
         if values["building"].strip().lower()=="skill":
             values["kind"]="Lab"
@@ -193,8 +210,8 @@ def validate_payload(entity,payload,db):
 def records(entity:str,db=Depends(get_db),user=Depends(current_user)):
     model,_=entity_info(entity)
     if entity=="sessions": return timetable(db,user)
-    if entity=="users": require(user,[])
-    if entity=="students": require(user,["Registrar"])
+    if entity=="users": require(user,["SuperAdmin"])
+    if entity=="students": require(user,["RTE"])
     if user.role in ["Student","Faculty"] and entity in ["faculty","modules","cohorts"]: return workspace(db,user)[entity]
     return [serialize(x) for x in db.find(model)]
 
@@ -217,7 +234,7 @@ def edit(entity:str,ident:int,body:s.Mutation,db=Depends(get_db),user=Depends(cu
     if entity=="rules" and obj.kind=="Hard": raise HTTPException(403,"Hard constraints cannot be disabled.")
     values=validate_payload(entity,body.data,db)
     if entity=="users":
-        if ident==user.id and (not values["active"] or values["role"] not in ["Registrar","Super Admin"]): raise HTTPException(409,"You cannot disable your own Registrar account.")
+        if ident==user.id and (not values["active"] or values["role"] != "SuperAdmin"): raise HTTPException(409,"You cannot disable or demote your own SuperAdmin account.")
         password=values.pop("password")
         if password: values["password_hash"]=password_hash(password)
     old=serialize(obj)
@@ -225,7 +242,7 @@ def edit(entity:str,ident:int,body:s.Mutation,db=Depends(get_db),user=Depends(cu
     bump(db); audit(db,user,"UPDATE",f"{entity}/{ident}",old,serialize(obj),body.reason); db.commit(); return serialize(obj)
 
 @app.delete("/api/data/{entity}/{ident}")
-def remove(entity:str,ident:int,body:s.Reason,db=Depends(get_db),user=Depends(current_user)):
+def remove(entity:str,ident:int,body:s.DeleteRecord,db=Depends(get_db),user=Depends(current_user)):
     if entity=="sessions": raise HTTPException(403,"Use the audited timetable workflow to change sessions.")
     model,_=entity_info(entity); require(user,MANAGE.get(entity,[])); obj=db.get(model,ident)
     if not obj: raise HTTPException(404,"Record not found.")
@@ -234,7 +251,7 @@ def remove(entity:str,ident:int,body:s.Reason,db=Depends(get_db),user=Depends(cu
 
 @app.get("/api/audit")
 def audit_log(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.AuditLog,descending=True,limit=500)]
+    require(user,["SuperAdmin"]); return [serialize(x) for x in db.find(m.AuditLog,descending=True,limit=500)]
 
 @app.get("/api/audit/export")
 def export_audit(db=Depends(get_db),user=Depends(current_user)):
@@ -252,12 +269,34 @@ def notifications(db=Depends(get_db),user=Depends(current_user)):
 
 @app.get("/api/emails")
 def emails(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); return [serialize(x) for x in db.find(m.Email,descending=True,limit=1000)]
+    require(user,["RTE"]); return [serialize(x) for x in db.find(m.Email,descending=True,limit=1000)]
+
+@app.post("/api/emails/recipients")
+def email_recipients(body:s.RecipientMessage,db=Depends(get_db),user=Depends(current_user)):
+    require(user,["RTE"])
+    if not (body.cohort_id or body.student_ids or body.custom_recipients):
+        raise HTTPException(422,"Select a cohort, students, or at least one custom email address.")
+    if body.cohort_id and body.student_ids:
+        raise HTTPException(422,"Choose either an entire cohort or individual students; custom addresses may be included with either.")
+    query={"status":"Active","cohort_id":body.cohort_id} if body.cohort_id else {"status":"Active","id":{"$in":body.student_ids}}
+    students=db.find(m.Student,query) if (body.cohort_id or body.student_ids) else []
+    if (body.cohort_id or body.student_ids) and not students:
+        raise HTTPException(404,"No active students match the selected recipients.")
+    recipients={student.email.strip().lower() for student in students if student.email.strip()} | set(body.custom_recipients)
+    if not recipients:
+        raise HTTPException(422,"The selected students do not have email addresses. Add a custom recipient instead.")
+    for recipient in sorted(recipients):
+        db.add(m.Email(recipient=recipient,subject=body.subject,body=body.body))
+    for student in students:
+        db.add(m.Notification(cohort_id=student.cohort_id,title=body.subject,body=body.body))
+    audit(db,user,"RECIPIENT EMAILS PREPARED","Student communications",new={"recipients":len(recipients),"student_recipients":len(students),"custom_recipients":len(body.custom_recipients),"cohort_id":body.cohort_id},reason="RTE selected student and custom email recipients")
+    db.commit(); return {"prepared":len(recipients),"student_recipients":len(students),"custom_recipients":len(body.custom_recipients)}
 
 @app.put("/api/emails/{ident}")
 def edit_email(ident:int,body:s.EmailInput,db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); obj=db.get(m.Email,ident)
+    require(user,["RTE"]); obj=db.get(m.Email,ident)
     if not obj: raise HTTPException(404,"Email not found.")
+    if obj.provider_id: raise HTTPException(409,"This email has already been sent and cannot be edited.")
     old=serialize(obj); obj.subject=body.subject; obj.body=body.body
     obj.status={"draft":"Draft","send":"Demo delivered","schedule":"Demo scheduled"}[body.action]; obj.scheduled_at=body.scheduled_at if body.action=="schedule" else None
     if body.action=="schedule":
@@ -267,9 +306,24 @@ def edit_email(ident:int,body:s.EmailInput,db=Depends(get_db),user=Depends(curre
         except (ValueError,AttributeError): raise HTTPException(422,"Choose a future date and time with a timezone.")
     audit(db,user,"EMAIL "+body.action.upper(),f"Email {ident}",old,serialize(obj),"Demo communication workflow",obj.status); db.commit(); return serialize(obj)
 
+@app.post("/api/emails/{ident}/send-live")
+def send_live_email(ident:int,db=Depends(get_db),user=Depends(current_user)):
+    require(user,["RTE"])
+    obj=db.get(m.Email,ident)
+    if not obj: raise HTTPException(404,"Email not found.")
+    if obj.provider_id: return serialize(obj)
+    if obj.status!="Draft": raise HTTPException(409,"Save and review this message as a draft before live sending.")
+    from .providers import send_reviewed_email
+    old=serialize(obj)
+    try: receipt=send_reviewed_email(obj)
+    except ValueError as error: raise HTTPException(502,str(error)) from None
+    obj.provider_id=receipt; obj.status="Accepted by Resend"; obj.scheduled_at=None
+    audit(db,user,"EMAIL LIVE SEND",f"Email {ident}",old,serialize(obj),"Registrar reviewed and sent this draft",obj.status)
+    db.commit(); return serialize(obj)
+
 @app.post("/api/emails/deliver-due")
 def deliver_due(db=Depends(get_db),user=Depends(current_user)):
-    require(user,["Registrar"]); count=0
+    require(user,["RTE"]); count=0
     for email in db.find(m.Email,{"status":"Demo scheduled"}):
         if datetime.fromisoformat(email.scheduled_at)<=datetime.now(timezone.utc):
             email.status="Demo delivered"; count+=1; audit(db,user,"EMAIL DEMO DELIVERY",f"Email {email.id}",reason="Process due demo outbox")
@@ -278,15 +332,18 @@ def deliver_due(db=Depends(get_db),user=Depends(current_user)):
 @app.get("/api/exams")
 def exams(db=Depends(get_db),user=Depends(current_user)):
     data=snapshot(db); modules={x["id"]:x for x in data["modules"]}; rooms={x["id"]:x for x in data["rooms"]}; cohorts={x["id"]:x for x in data["cohorts"]}; faculty={x["id"]:x for x in data["faculty"]}; rows=[]
-    from .exam_routes import issues_for
+    from .exam_routes import issues_for, normalize_exam
     all_exams=db.find(m.ExamSession)
     exam_records=[serialize(exam) for exam in all_exams]
     for exam in all_exams:
         mod=modules[exam.module_id]; room=rooms[exam.room_id]; cohort=cohorts[mod["cohort_id"]]
         if user.role=="Student" and user.cohort_id!=cohort["id"]: continue
         if user.role=="Faculty" and user.faculty_id!=exam.invigilator_id: continue
-        issues=issues_for(serialize(exam),exam_records,data)
-        rows.append({**serialize(exam),"code":mod["code"],"module":mod["name"],"room":room["name"],"capacity":room["capacity"],"students":cohort["size"],"invigilator":faculty[exam.invigilator_id]["name"],"conflicts":issues})
+        item=normalize_exam(serialize(exam),data)
+        issues=issues_for(item,exam_records,data)
+        room={"name":" + ".join(rooms[rid]['name'] for rid in item['room_ids']),"capacity":sum(rooms[rid]['capacity'] for rid in item['room_ids'])}
+        cohort={"size":sum(cohorts[cid]['size'] for cid in item['cohort_ids'])}
+        rows.append({**item,"code":mod["code"],"module":mod["name"],"room":room["name"],"capacity":room["capacity"],"students":cohort["size"],"invigilator":faculty[exam.invigilator_id]["name"],"conflicts":issues})
     return rows
 
 @app.get("/api/analytics")
@@ -296,7 +353,7 @@ def analytics(db=Depends(get_db),user=Depends(current_user)):
 
 @app.get('/api/analytics/conflict-history')
 def conflict_history(db=Depends(get_db),user=Depends(current_user)):
-    require(user,['Registrar'])
+    require(user,['RTE'])
     return [serialize(x) for x in reversed(db.find(m.ConflictSnapshot,descending=True,limit=30))]
 
 from .intelligence_routes import router as intelligence_router

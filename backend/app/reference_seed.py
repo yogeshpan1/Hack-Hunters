@@ -12,7 +12,7 @@ def load_reference_demo(db):
     if os.getenv('NEXUS_LOAD_DEMO','true').lower()=='false': return False
     if db.first(m.AuditLog,{'action':'REFERENCE DEMO INITIALIZED'}): return False
     if any(db.first(model) for model in [m.Faculty,m.Module,m.Cohort,m.TimetableSession]): return False
-    admin=db.first(m.User,{'role':{'$in':['Registrar','Super Admin']},'active':True})
+    admin=db.first(m.User,{'role':{'$in':['SuperAdmin','Registrar','Super Admin']},'active':True})
     if not admin: return False
     data=json.loads(OPERATIONS_PATH.read_text(encoding='utf-8'))
     profile=next(p for p in data['profiles'] if p['id']==data['recommended_demo']['profile_id'])
@@ -24,7 +24,8 @@ def load_reference_demo(db):
         db.add(record);faculty[row['code']]=record
     cohorts={}
     for name in sorted({c for s in profile['sessions'] for c in s['cohort_names']}):
-        obj=m.Cohort(name=name,programme_id=programme.id,size=30,level=profile['level'],source='Routine-4.png',data_status='Demo / derived',notes='Group name from the routine; 30 students is a demo planning assumption, not verified enrolment.')
+        study_level={4:'First Year',5:'Second Year',6:'Third Year'}.get(profile['level'],'Masters')
+        obj=m.Cohort(name=name,programme_id=programme.id,size=30,level=profile['level'],study_level=study_level,source='Routine-4.png',data_status='Demo / derived',notes='Group name from the routine; 30 students is a demo planning assumption, not verified enrolment.')
         db.add(obj);cohorts[name]=obj
     rooms={r.name:r for r in db.find(m.Room)}
     modules={}

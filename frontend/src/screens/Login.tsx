@@ -20,7 +20,7 @@ export default function Login(){
     <label>Password<input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/></label>
     {error&&<ErrorNotice message={error}/>}<Button variant="primary" disabled={busy}>{busy?"Signing in…":"Enter workspace"}<ArrowRight size={17}/></Button>
    </form>
-   <div className="demo-login"><ShieldCheck size={18}/><div><strong>Registrar-managed access</strong><p>Registrars create additional Registrar accounts. Contact a Registrar for access.</p></div></div>
+   <div className="demo-login"><ShieldCheck size={18}/><div><strong>Role-managed access</strong><p>SuperAdmins manage accounts. RTE administrators manage the timetable; SSD access is read-only.</p></div></div>
    <small>College inventory and curriculum loaded from supplied sources. Local application authentication.</small>
   </div><div className="login-ecosystem">Part of the innovation ecosystem<img src="/ing.png" alt="ING"/></div></section>
  </div>;
