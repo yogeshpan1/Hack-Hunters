@@ -1,6 +1,6 @@
 # NEXUS — Project context and developer handoff
 
-Updated: 12 September 2026. Read this file and README.md before changing the application. No conversation history is required. This document describes the repository, not an aspirational product specification.
+Updated: 13 September 2026. Read this file and README.md before changing the application. No conversation history is required. This document describes the repository, not an aspirational product specification.
 
 ## Goal and hackathon challenge — DECIDED
 
@@ -10,12 +10,12 @@ The implemented demonstration is: detect a timetable conflict → inspect its so
 
 ## Product and technical decisions — DECIDED
 
-- Work in this repository; preserve working features. The primary remote is `https://github.com/yogeshpan1/Hack-Hunters.git`, branch `main`. Do not force-push or rewrite history. Prior baseline commits are `2dbce80` (reference redesign) and `b5fe0b4` (MongoDB/college inventory). The final cleanup/integration commit follows those; use `git log -1` for its exact identifier.
+- Work in this repository; preserve working features. The user-authorized delivery remote is `origin`, `https://github.com/yogeshpan1/Hack-Hunters.git`, branch `main`. The prior delivery history was merged in commit `65599a6`; push only with normal fast-forward checks. Do not force-push or rewrite history.
 - MongoDB is the only primary database. PyMongo, Pydantic and FastAPI provide persistence and APIs. Do not reintroduce SQLAlchemy, PostgreSQL or SQL migrations.
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide, Recharts, Axios, React Router. Native fetch consumes the optimizer NDJSON stream. No large component library or external state manager.
 - Default local storage uses MongoDB Community 8.0.32, a single-node replica set, and localhost binding. Transactions are required. Data is outside OneDrive in `%LOCALAPPDATA%\Nexus\MongoDB`. No Atlas account is created. Hosted deployments may configure Atlas.
-- Exactly one initial Registrar is bootstrapped into an empty database. A Registrar can add another Registrar. Legacy `Super Admin` accounts migrate to Registrar during startup so existing local access survives. There is no public registration or extra administrator hierarchy.
-- The protected account API accepts only the Registrar role; the standalone account-management screen has been removed. Teacher directory records do not create login accounts.
+- Exactly one initial SuperAdmin is bootstrapped into an empty database. SuperAdmin can add SuperAdmin, RTE and SSD accounts. Legacy `Super Admin` and Registrar labels migrate to SuperAdmin so existing local access survives. There is no public registration.
+- SuperAdmin owns accounts and the Change Log. RTE owns academic planning, examinations, optimization and student communications but cannot see the Change Log or accounts. SSD is read-only for timetable, examinations, room availability and the deterministic database assistant. Teacher directory records do not create login accounts.
 - Credentials belong only in environment/local configuration. No default bootstrap password exists in current source. The setup helper accepts hidden input and never prints passwords. Existing accounts are preserved. Test passwords are random per test process.
 
 ## Architecture and important files
@@ -152,3 +152,9 @@ Timetable conflict counts are hidden in the studio and navigation. Record detail
 ## Optional service integration — September 13
 
 Final.zip inspired optional Groq question normalization and Resend delivery adapters in providers.py. Existing MongoDB queries produce answers; model output never executes and receives only user questions/history. Provider flags default off. A separate authenticated Registrar send-live endpoint sends reviewed drafts, records receipts and audit entries, and prevents resending completed messages. Existing demo scheduling and automatic draft preparation remain unchanged. No archived credentials were copied or live calls made. See docs/OPTIONAL_INTEGRATIONS.md for configuration and delivery retry limitations.
+
+## Optimization practice and tab logo — September 13
+
+The browser favicon uses the unchanged official `frontend/public/islington.png`. The explicit `scripts/add-demo-conflicts.py` command adds two labelled room double-bookings to the configured existing timetable. It independently checks that only two additional room clashes are introduced and verifies a zero-hard-conflict solver result before committing. Locked sessions stay unchanged. Revision, conflict snapshots, original room IDs, and an administrator audit record are saved atomically. It runs only when explicitly invoked, never on startup, and its audit marker prevents reapplication even after optimization publication. Local database changes are not Git content; other workspaces can invoke the same command.
+
+Verification: 62 backend tests passed against isolated MongoDB databases, including demo idempotence, locked-session preservation, conflict persistence, streamed optimization, approval and publication. Frontend production build passed. Live API health, HTML favicon reference and PNG response returned HTTP 200. One existing Starlette/AnyIO deprecation warning remains. The local timetable retains two unresolved room clashes for user practice.
