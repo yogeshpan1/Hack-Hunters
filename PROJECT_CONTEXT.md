@@ -10,12 +10,12 @@ The implemented demonstration is: detect a timetable conflict → inspect its so
 
 ## Product and technical decisions — DECIDED
 
-- Work in this repository; preserve working features. The remote is `https://github.com/NormieGit/Hackathon-.git`, branch `main`. Do not force-push or rewrite history. Prior baseline commits are `2dbce80` (reference redesign) and `b5fe0b4` (MongoDB/college inventory). The final cleanup/integration commit follows those; use `git log -1` for its exact identifier.
+- Work in this repository; preserve working features. The primary remote is `https://github.com/yogeshpan1/Hack-Hunters.git`, branch `main`. Do not force-push or rewrite history. Prior baseline commits are `2dbce80` (reference redesign) and `b5fe0b4` (MongoDB/college inventory). The final cleanup/integration commit follows those; use `git log -1` for its exact identifier.
 - MongoDB is the only primary database. PyMongo, Pydantic and FastAPI provide persistence and APIs. Do not reintroduce SQLAlchemy, PostgreSQL or SQL migrations.
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide, Recharts, Axios, React Router. Native fetch consumes the optimizer NDJSON stream. No large component library or external state manager.
 - Default local storage uses MongoDB Community 8.0.32, a single-node replica set, and localhost binding. Transactions are required. Data is outside OneDrive in `%LOCALAPPDATA%\Nexus\MongoDB`. No Atlas account is created. Hosted deployments may configure Atlas.
-- Exactly one initial Registrar is bootstrapped into an empty database. A Registrar can add another Registrar. Legacy `Super Admin` accounts migrate to Registrar during startup so existing local access survives. There is no public registration or extra administrator hierarchy.
-- The protected account API accepts only the Registrar role; the standalone account-management screen has been removed. Teacher directory records do not create login accounts.
+- Exactly one initial SuperAdmin is bootstrapped into an empty database. SuperAdmin can add SuperAdmin, RTE and SSD accounts. Legacy `Super Admin` and Registrar labels migrate to SuperAdmin so existing local access survives. There is no public registration.
+- SuperAdmin owns accounts and the Change Log. RTE owns academic planning, examinations, optimization and student communications but cannot see the Change Log or accounts. SSD is read-only for timetable, examinations, room availability and the deterministic database assistant. Teacher directory records do not create login accounts.
 - Credentials belong only in environment/local configuration. No default bootstrap password exists in current source. The setup helper accepts hidden input and never prints passwords. Existing accounts are preserved. Test passwords are random per test process.
 
 ## Architecture and important files
@@ -144,3 +144,11 @@ The previous shared development password existed in historical commits. Current 
 ## Recording-based UI update
 
 UI Overview.mov was inspected using extracted frames. Sidebar collapse is bottom-right. Examinations now supports audited create/edit, plan preview/save, venue reassignment and seat-demand visualization. The first-fit planner handles primary cohorts, skips Saturdays, checks weekly teaching, and refuses incomplete saves. Optimization uses three real solver strategies; what-if stores actual incident metrics. Analytics uses current weekly occupancy and stored conflict snapshots, not fictitious term data. Faculty uses paginated workload bars and selected-person details. Removed Import and Users screens remain absent.
+
+## September 12 workflow cleanup
+
+Timetable conflict counts are hidden in the studio and navigation. Record details expose deletion; sessions and exams have registrar-only audited deletion with revision checks (locked sessions must be unlocked). Routine record and allocation creation no longer asks for a reason; schedule overrides and reviewed bulk plans retain reasons. Change Log emphasizes actor names. Faculty bars use a shared scale with individual target markers, and the weekly panel positions sessions by time. The overview reference-demo banner was removed. Student addresses follow the user-confirmed first.last@islingtoncollege.edu.np convention, omitting middle names. All 1,956 local students were upgraded; generated names avoid address collisions. One supplied-roster duplicate address remains for college clarification. Versioned demo refresh runs once to preserve subsequent edits/deletions. Frontend build and 53 backend tests passed before final email collision refinements; local verification confirmed no generated collisions and an idempotent refresh. Browser QA reached login, so authenticated visual QA remains unverified.
+
+## Optional service integration — September 13
+
+Final.zip inspired optional Groq question normalization and Resend delivery adapters in providers.py. Existing MongoDB queries produce answers; model output never executes and receives only user questions/history. Provider flags default off. A separate authenticated Registrar send-live endpoint sends reviewed drafts, records receipts and audit entries, and prevents resending completed messages. Existing demo scheduling and automatic draft preparation remain unchanged. No archived credentials were copied or live calls made. See docs/OPTIONAL_INTEGRATIONS.md for configuration and delivery retry limitations.

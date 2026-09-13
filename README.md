@@ -2,7 +2,23 @@
 
 Academic Operations Intelligence for Islington College · ING ecosystem
 
-NEXUS helps academic teams identify timetable conflicts, calculate valid alternatives, review the impact, approve a change, and publish it with an audit trail and communication drafts. The hackathon demonstration focuses on this complete operational loop.
+Primary repository: [yogeshpan1/Hack-Hunters](https://github.com/yogeshpan1/Hack-Hunters)
+
+NEXUS is an academic operations platform for Islington College. It brings timetabling, examinations, student communication, operational intelligence and safe scenario planning into one role-aware workspace. Teams can detect conflicts, generate valid alternatives, review their impact, approve changes, and publish them with an audit trail.
+
+## Problem statement
+
+Academic scheduling tools often treat classes, examination venues, teaching staff, cohort membership and communications as separate tasks. That creates avoidable clashes, unclear accountability, and slow responses when a room closes or a lecturer becomes unavailable. NEXUS models those dependencies together, so a proposed change is checked before it reaches students or staff.
+
+## What makes NEXUS stand out
+
+- **Whole-college planning data:** every seeded module, cohort and faculty member is represented in the timetable catalogue. The generated planning allocation currently contains 291 sessions across first year, second year, third year and Masters delivery.
+- **Policy-aware scheduling:** lecture, tutorial and workshop durations; first-year breaks; second-year compactness; final-year limits; Masters teaching windows; and shared Masters-faculty handovers are enforced as constraints.
+- **Operational examinations:** exams support multiple venues, venue capacities, and one to three invigilators per venue while preventing teaching/exam room, cohort and invigilator collisions.
+- **Decision support that stays safe:** Optimization Lab and What-If Simulator create reviewable proposals for room closures and faculty absence. They never modify the published plan until an RTE approves and publishes it.
+- **Clear responsibilities:** SuperAdmin manages accounts and Change Log access; RTE runs operational workflows and student communications; SSD has read-only planning access and a read-only assistant.
+
+The implementation was designed with the supplied **Figma** reference and built with assistance from **OpenAI Codex**.
 
 ## Start locally
 
@@ -17,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File scripts/setup-mongodb.ps1
 powershell -ExecutionPolicy Bypass -File scripts/start-nexus.ps1
 ```
 
-The configuration command asks for the initial administrator credentials using hidden password input and writes only to ignored `.env`. There is **no hard-coded default password**. Existing database accounts are preserved and are not changed by re-running setup. A Registrar can add another Registrar through the protected account API; there is no public registration.
+The configuration command asks for the initial SuperAdmin credentials using hidden password input and writes only to ignored `.env`. There is **no hard-coded default password**. Optional role accounts are configured through the `NEXUS_RTE_*` and `NEXUS_SSD_*` environment variables. Existing accounts are preserved unless an explicitly configured role account is refreshed; there is no public registration.
 
 Open http://127.0.0.1:5173. API docs: http://127.0.0.1:8000/docs. Later launches only need `scripts/start-nexus.ps1`. After backend code changes use `scripts/restart-nexus.ps1`; it verifies the process belongs to this project's virtual environment before stopping it. Servers run in hidden windows; logs are in `%LOCALAPPDATA%\Nexus\logs`.
 
@@ -55,7 +71,7 @@ The application runs from versioned structured JSON in `backend/data`; raw refer
 - Seven separately preserved routine profiles containing 60 source rows; different terms are not silently merged.
 - 25 historical assessment components. Published deadlines/windows appear separately from exam allocations; missing exact times, venues and invigilators remain unknown.
 
-On a workspace with no operational faculty, modules, cohorts or timetable, startup loads the coherent Autumn 2026 AI1 reference profile: six sessions, six named groups, three modules. **Thirty students per group is a demonstration assumption.** One 180-person combined lecture is intentionally moved from its reference hall to the 100-seat LT-05 to create a labelled capacity disruption. A workshop is locked to demonstrate preservation of fixed allocations. This does not claim the original college routine has an error.
+On a workspace with no operational faculty, modules, cohorts or timetable, startup loads the coherent Autumn 2026 reference profile and a labelled full-catalogue planning allocation. This brings every programme offering, cohort and named faculty member into the planning workspace. It uses valid lecture allocations and A/B-week rotation where Masters capacity requires it. **Generated group sizes and allocations are planning demonstrations, not a claim about the published college routine.** One 180-person combined lecture remains intentionally placed in the 100-seat LT-05 to demonstrate the capacity-resolution workflow; a workshop is locked to demonstrate preservation of fixed allocations.
 
 Seeding is transactional, audited, and idempotent. Existing operational edits prevent automatic demo loading. Set `NEXUS_LOAD_DEMO=false` before first startup for an empty planning workspace. If the ignored, user-supplied `Student Details.pdf` is present locally, its validated 276-row Computing roster is loaded only into that local MongoDB database; the PDF and its raw identifiers are never committed. Other programme cohorts use labelled generated planning profiles. Teacher source records do not create login accounts. Populated fictional test fixtures exist only under `backend/tests` and use generated ephemeral passwords.
 
@@ -84,9 +100,9 @@ Regeneration does not overwrite an already initialized database.
 
 The interface follows the supplied Figma hierarchy: a health KPI strip, Schedule Intelligence, ranked improvements and weekly operational load. The untouched crest appears in the NEXUS seal, login and shell. The introduction lasts four seconds, is skippable, and ends immediately for reduced motion. Keyboard command search and contextual assistance preserve selected session/record context. Dark mode is not included.
 
-The only role available when creating an internal account is Registrar. Existing legacy `Super Admin` accounts migrate to Registrar on startup, so the original administrator remains usable. The last active Registrar cannot be removed, and a Registrar cannot disable their own account. Public registration is not implemented.
+SuperAdmin can create and manage internal SuperAdmin, RTE and SSD accounts and view the Change Log. RTE manages academic, examination, optimization and student-message workflows but cannot create accounts or view the Change Log. SSD has read-only access to timetable, examination and room availability information, plus the read-only database assistant. The last active SuperAdmin cannot be removed, and a user cannot disable their own account. Public registration is not implemented.
 
-Supported management includes rooms, faculty, programmes, teaching modules, cohorts and students. Global search covers academic records and role-authorized student, exam and audit data. Bulk record ingestion and the separate account-management screen were removed from the working interface to keep the hackathon workflow focused.
+Supported management includes rooms, faculty, programmes, teaching modules, cohorts and students. Global search covers academic records and role-authorized student, exam and audit data. SuperAdmin account management is available in the working interface. RTE can prepare messages for cohorts, individual students, or custom email addresses; SSD cannot send or modify records.
 
 ## Architecture and scheduling
 
@@ -113,7 +129,7 @@ Configure `.env` locally, then run `docker compose up --build`. Compose runs Mon
 npm --prefix frontend run build
 ```
 
-The test suite runs against isolated databases on real MongoDB. Coverage includes authentication, Registrar-only account creation, normalized email sign-in, management validation, transactional rollback, stale revisions, combined-cohort overlaps, half-hour sessions, PC capacity, locked sessions, infeasibility, what-if, streaming progress, source-demo bootstrap, publication, persisted conflict history, audit, notifications, demo email drafts, protected timetable actions, and sanitized database failures. The production frontend build also passes. A dependency deprecation warning remains in Starlette's test-client integration.
+The test suite runs against isolated databases on real MongoDB. Coverage includes authentication, role boundaries, normalized email sign-in, management validation, transactional rollback, stale revisions, combined-cohort overlaps, half-hour sessions, PC capacity, locked sessions, year-level study policies, exam planning and venue allocation, infeasibility, what-if, streaming progress, source-demo bootstrap, publication, persisted conflict history, audit, notifications, demo email drafts, protected timetable actions, and sanitized database failures. The production frontend build also passes. A dependency deprecation warning remains in Starlette's test-client integration.
 
 Known boundaries: weekly recurrence only, no full academic calendar/holiday engine; Exam planning supports validated date/time editing, generated drafts and venue optimization; named student seat assignments and global invigilator-load optimization remain future work. Assessment references do not substitute for confirmed schedules. Student bulk editing and CSV column-mapping are not available. Some lists use bounded result sets/client filtering rather than server pagination. Analytics displays recorded conflict history by revision. No external LLM, email delivery, SSO, prediction engine, password recovery, login rate limiting or distributed solver worker is included. Production authentication and database hardening remain deployment work.
 
@@ -121,4 +137,8 @@ Known boundaries: weekly recurrence only, no full academic calendar/holiday engi
 
 Repository: https://github.com/NormieGit/Hackathon-.git. Keep runtime source/assets, extracted data, tests, lockfiles and documentation in Git. Reference PDFs/images, dependencies, caches, builds, archives, logs and secrets remain ignored. Existing history is not rewritten or force-pushed. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) before continuing development and keep it current after architectural decisions.
 
-The September 2026 UI pass follows the supplied UI Overview.mov: candidate comparison in Optimization Lab, three-column What-If analysis, workload bars and faculty detail, and Operations Analytics. Examination drafts use a deterministic first-fit planner, checking recurring teaching commitments as well as exam conflicts. Preview does not write; saving requires an unchanged workspace revision and records an audit entry. Each exam currently assesses its module’s primary cohort.
+The September 2026 UI pass follows the supplied UI Overview.mov: candidate comparison in Optimization Lab, three-column What-If analysis, workload bars and faculty detail, and Operations Analytics. Examination drafts use a deterministic first-fit planner, checking recurring teaching commitments as well as exam conflicts. Preview does not write; saving requires an unchanged workspace revision and records an audit entry. An exam can include all cohorts taking its module and split students across multiple venues.
+
+## Optional AI and live email
+
+Groq-assisted question interpretation and reviewed Resend sending are available behind configuration flags. Defaults retain structured assistance and demo delivery. See [setup and behaviour](docs/OPTIONAL_INTEGRATIONS.md).
