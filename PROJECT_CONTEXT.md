@@ -10,7 +10,7 @@ The implemented demonstration is: detect a timetable conflict → inspect its so
 
 ## Product and technical decisions — DECIDED
 
-- Work in this repository; preserve working features. The primary remote is `https://github.com/yogeshpan1/Hack-Hunters.git`, branch `main`. Do not force-push or rewrite history. Prior baseline commits are `2dbce80` (reference redesign) and `b5fe0b4` (MongoDB/college inventory). The final cleanup/integration commit follows those; use `git log -1` for its exact identifier.
+- Work in this repository; preserve working features. The tracked delivery remote is `https://github.com/NormieGit/Hackathon-.git`, branch `main`. A separate `origin` remote points to the earlier Hack-Hunters repository and must not receive this branch without an explicit merge plan. Do not force-push or rewrite history. Prior baseline commits are `2dbce80` (reference redesign) and `b5fe0b4` (MongoDB/college inventory). The final cleanup/integration commit follows those; use `git log -1` for its exact identifier.
 - MongoDB is the only primary database. PyMongo, Pydantic and FastAPI provide persistence and APIs. Do not reintroduce SQLAlchemy, PostgreSQL or SQL migrations.
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide, Recharts, Axios, React Router. Native fetch consumes the optimizer NDJSON stream. No large component library or external state manager.
 - Default local storage uses MongoDB Community 8.0.32, a single-node replica set, and localhost binding. Transactions are required. Data is outside OneDrive in `%LOCALAPPDATA%\Nexus\MongoDB`. No Atlas account is created. Hosted deployments may configure Atlas.
