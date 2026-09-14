@@ -33,11 +33,13 @@ def seed(db):
     catalog=json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
     for record in catalog['programmes']: db.add(Programme(**record))
     for record in catalog['rooms']: db.add(Room(**record))
-    password=os.getenv('NEXUS_ADMIN_PASSWORD','')
+    # The role-specific SuperAdmin settings are the current local setup
+    # contract. Retain NEXUS_ADMIN_* as a backwards-compatible fallback.
+    password=os.getenv('NEXUS_SUPERADMIN_PASSWORD') or os.getenv('NEXUS_ADMIN_PASSWORD','')
     if len(password)<10: raise ValueError('NEXUS_ADMIN_PASSWORD must have at least 10 characters.')
-    email=os.getenv('NEXUS_ADMIN_EMAIL','').strip().lower()
+    email=(os.getenv('NEXUS_SUPERADMIN_EMAIL') or os.getenv('NEXUS_ADMIN_EMAIL','')).strip().lower()
     if '@' not in email: raise ValueError('Set NEXUS_ADMIN_EMAIL before initializing an empty database.')
-    admin=User(id=1,name=os.getenv('NEXUS_ADMIN_NAME') or 'NEXUS SuperAdmin',email=email,password_hash=password_hash(password),role='SuperAdmin')
+    admin=User(id=1,name=os.getenv('NEXUS_SUPERADMIN_NAME') or os.getenv('NEXUS_ADMIN_NAME') or 'NEXUS SuperAdmin',email=email,password_hash=password_hash(password),role='SuperAdmin')
     db.add(admin)
     db.add(ScheduleVersion(id=1,revision=1))
     for name in HARD_RULES:
